@@ -106,6 +106,8 @@ def auth():
         lang = flask_lang.get_language_from_request()
         user = User.create(name='', site_lang=lang, osm_uid=uid,
                            osm_name=name, code=generate_user_code())
+        flash('Welcome! Please fill in your name and address to start '
+              'sending and receiving postcards.', 'info')
     else:
         if user.osm_name != name:
             user.osm_name = name
