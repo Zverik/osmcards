@@ -68,7 +68,7 @@ class User(BaseModel):
     created_on = DateTimeField(default=datetime.now)
     active_on = DateTimeField(default=datetime.now)
     name = CharField(max_length=250)
-    code = IntegerField(index=True)  # Secret code to request a postcard
+    code = CharField(max_length=32, index=True)  # Secret code to request a postcard
     osm_uid = IntegerField(index=True)
     osm_name = CharField()
     email = CharField(max_length=250, null=True)
