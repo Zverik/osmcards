@@ -368,7 +368,8 @@ def profile(pcode=None, scode=None):
         try:
             recent_postcard = MailCode.select().where(
                 MailCode.sent_by == puser,
-                MailCode.sent_to == g.user
+                MailCode.sent_to == g.user,
+                MailCode.received_on.is_null(False)
             ).order_by(MailCode.received_on.desc()).get()
         except MailCode.DoesNotExist:
             pass
