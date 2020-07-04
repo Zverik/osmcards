@@ -1,0 +1,6 @@
+{% extends "layout.html" %}
+{% block title %}Send a Postcard &mdash;{% endblock %}
+{% block content %}
+<p>You will be given a profile with an address. Please send them a postcard.</p>
+<p><a href="{{ url_for('c.dosend') }}">Continue</a></p>
+{% endblock %}

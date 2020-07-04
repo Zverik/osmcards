@@ -1,0 +1,9 @@
+---
+acme_challenge_type: http-01
+acme_directory: https://acme-v02.api.letsencrypt.org/directory
+acme_version: 2
+acme_email: ilya@zverev.info
+
+letsencrypt_dir: /etc/letsencrypt
+letsencrypt_account_key: /etc/letsencrypt/account/account.key
+domain_name: osmcards.org

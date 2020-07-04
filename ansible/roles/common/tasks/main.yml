@@ -1,0 +1,37 @@
+---
+- name: Ensure apt cache is up to date
+  apt: update_cache=yes cache_valid_time=3600 upgrade=dist
+  changed_when: False
+
+- name: install setfacl support
+  apt: name=acl
+
+- name: Create zverik user
+  user: name=zverik shell=/bin/bash
+
+- name: Add a ssh key to zverik
+  authorized_key:
+    user: zverik
+    state: present
+    key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') }}"
+
+- name: Add zverik to sudoers
+  copy:
+    content: "zverik ALL=(ALL) NOPASSWD:ALL"
+    dest: /etc/sudoers.d/zverik
+
+- name: Install useful packages
+  apt:
+    name:
+      - tmux
+      - htop
+      - ncdu
+      - vim
+    state: present
+
+- name: Create /opt/src directory
+  file:
+    path: /opt/src
+    state: directory
+    owner: zverik
+    mode: 0755

@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+<p>Welcome to OSM Cards! Here we exchange postcards and emotions. To connect
+to another member of the OpenStreetMap community, just click this button:</p>
+<p><a class="btn btn-lg btn-success" role="button" href="{{ url_for('c.send') }}">Send a Postcard</a></p>
+<p><a href="{{ url_for('c.register') }}">Register a Postcard</a></p>
+{% if requests %}
+<p>Postcard requests:
+  {% for req in requests %}
+  <a href="{{ url_for('c.profile', pcode=req.requested_by.code) }}">{{ req.name }}</a>
+  {% endfor %}
+</p>
+{% endif %}
+{% if mailcodes %}
+<p>Postcards to send:
+  {% for code in mailcodes %}
+  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.code }}</a>
+  {% endfor %}
+</p>
+{% endif %}
+{% if sent_cards %}
+<p>Travelling postcards:
+  {% for code in sent_cards %}
+  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.code }}</a>
+  {% endfor %}
+</p>
+{% endif %}
+{% endblock %}

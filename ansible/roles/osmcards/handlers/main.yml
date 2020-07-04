@@ -1,0 +1,9 @@
+---
+- name: restart nginx
+  become: yes
+  systemd: name=nginx state=restarted
+
+- name: touch osmcards
+  file:
+    path: /opt/src/osmcards/osmcards.wsgi
+    state: touch

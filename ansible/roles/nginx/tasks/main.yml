@@ -1,0 +1,17 @@
+---
+- name: Install nginx and uwsgi
+  apt:
+    name: uwsgi,uwsgi-plugin-python3,nginx-full,git
+    state: present
+
+- name: Redirect HTTPS
+  copy:
+    src: https.conf
+    dest: /etc/nginx/sites-available/https.conf
+
+- name: Enable redirecting HTTPS
+  file:
+    state: link
+    src: /etc/nginx/sites-available/https.conf
+    path: /etc/nginx/sites-enabled/https.conf
+  notify: restart nginx

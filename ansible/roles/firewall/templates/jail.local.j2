@@ -1,0 +1,27 @@
+[DEFAULT]
+destemail = {{ admin_email }}
+
+[sshd]
+enabled = true
+maxretry = 3
+
+[apache-auth]
+enabled = true
+
+[apache-badbots]
+enabled = true
+
+[apache-overflows]
+enabled = true
+
+[apache-fakegooglebot]
+enabled = true
+
+[apache-shellshock]
+enabled = true
+
+[postfix]
+enabled = false
+
+[sendmail-auth]
+enabled = false

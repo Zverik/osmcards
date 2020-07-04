@@ -1,0 +1,24 @@
+---
+- name: Create directories for Let's Encrypt
+  become: yes
+  file:
+    path: "{{ letsencrypt_dir }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=x,o=x
+  with_items:
+    - account
+    - certs
+    - csrs
+    - keys
+
+- name: Generate account key
+  command: openssl genrsa 4096 -out {{ letsencrypt_account_key }}
+  args:
+    creates: "{{ letsencrypt_account_key }}"
+
+- name: Generate domain key
+  command: openssl genrsa 4096 -out {{ letsencrypt_dir }}/keys/{{ domain_name }}.key
+  args:
+    creates: "{{ letsencrypt_dir }}/keys/{{ domain_name }}.key"

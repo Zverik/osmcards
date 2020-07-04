@@ -1,0 +1,33 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  remote_user: root
+  roles:
+    - common
+
+- hosts: all
+  become: yes
+  remote_user: root
+  roles:
+    - role: oefenweb.swapfile
+      swapfile_size: 1GB
+    - geerlingguy.ntp
+    - geerlingguy.certbot
+    - nginx
+    - firewall
+    - mysql
+
+- hosts: all
+  remote_user: zverik
+  vars:
+    ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') }}/.ssh/id_rsa"
+  roles:
+    - osmcards
+
+- hosts: localhost
+  tasks:
+    - name: Test connection to OSM Cards
+      uri:
+        url: https://osmcards.org/
+        status_code: 200

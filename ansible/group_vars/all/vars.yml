@@ -1,0 +1,18 @@
+---
+ntp_timezone: Europe/Moscow
+admin_email: ilya@zverev.info
+
+borg_repo: "{{ v_borg_repo }}"
+borg_pass: "{{ v_borg_pass }}"
+borg_key: "{{ v_borg_key }}"
+
+mysql_osmcards_password: "{{ v_mysql_osmcards_password }}"
+osmcards_secret_key: "{{ v_osmcards_secret_key }}"
+openstreetmap_client_id: "{{ v_openstreetmap_client_id }}"
+openstreetmap_client_secret: "{{ v_openstreetmap_client_secret }}"
+
+certbot_admin_email: ilya@zverev.info
+certbot_create_if_missing: true
+certbot_certs:
+  - domains:
+    - osmcards.org

@@ -1,0 +1,7 @@
+flask
+peewee
+flask-compress
+ruamel-yaml
+authlib
+requests
+flask-wtf

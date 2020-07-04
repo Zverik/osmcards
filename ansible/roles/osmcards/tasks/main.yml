@@ -1,0 +1,22 @@
+- name: Checkout osmcards
+  git:
+    repo: https://github.com/Zverik/osmcards.git
+    dest: /opt/src/osmcards
+  notify: touch osmcards
+
+- name: Upload osmcards config
+  copy:
+    src: config.py
+    dest: /opt/src/osmcards/config.py
+
+- name: Create virtualenv
+  pip:
+    requirements: /opt/src/osmcards/requirements.txt
+    virtualenv: /opt/src/osmcards/venv
+    virtualenv_python: python3.8
+
+- name: Set up database
+  import_tasks: db.yml
+
+- name: Set up nginx and uwsgi
+  import_tasks: nginx_uwsgi.yml

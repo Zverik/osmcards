@@ -1,0 +1,19 @@
+- name: Upload nginx site config
+  become: yes
+  copy:
+    src: nginx.conf
+    dest: /etc/nginx/sites-available/osmcards.conf
+
+- name: Enable osmcards configuration
+  become: yes
+  file:
+    state: link
+    src: /etc/nginx/sites-available/osmcards.conf
+    dest: /etc/nginx/sites-enabled/osmcards.conf
+
+- name: Disable default configuration
+  become: yes
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx

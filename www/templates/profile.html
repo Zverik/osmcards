@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{#
+    So people get here in three ways:
+    - At random after clicking "Send a Postcard" or from code history.
+      from_mailcode == True
+    - They are looking at their own profile.
+      me == True
+    - Via a link to the profile somewhere.
+      not mailcode and not me
+    - After registering their postcard.
+      recent_card == True
+
+    Also, when there's an active mailcode, "code"
+    is set. Check for code.sent_on to know if it's been sent.
+#}
+{% block title %}{{ user.name }} &mdash;{% endblock %}
+{% block content %}
+
+{% if not code %}
+  <h2>{{ user.name }}</h2>
+{% elif code.received_on %}
+  <h2>{{ user.name }}</h2>
+  <p>Your postcard has been received — thank you!</p>
+{% else %}
+  <h2>Send postcard #{{ code.code }} to {{ user.name }}</h2>
+  {% if code.sent_on %}
+    <p>You have marked that you have sent the postcard to this address:</p>
+  {% else %}
+    <p>You should mail it to this address — do not forget to write the
+      number "{{ code.code }}" on it!</p>
+  {% endif %}
+{% endif %}
+
+{% if (code and not code.received_on) or me %}
+  {% if me %}
+    <p>This is your address.
+    <a href="{{ url_for('c.user') }}">Edit it</a> if it's obsolete or wrong.
+    </p>
+    {% endif %}
+  <pre class="pl-3">{{ user.address }}</pre>
+{% endif %}
+
+{% if user.languages %}
+<p>Languages they understand: {{ user.languages }}.</p>
+{% endif %}
+
+{% if user.description %}
+  <p>Few words about {{ user.name }}:</p>
+  <p class="pl-3 font-italic">{{ user.description }}</p>
+{% endif %}
+
+{% if recent_card and not recent_card.comment %}
+  <form class="my-5" action="{{ url_for('c.comment', code=recent_card.code) }}" method="POST">
+    <div class="row">
+      <div class="form-group col-md-6">
+        <label for="comment">Please send the user a comment about their postcard</label>
+        <textarea class="form-control" id="comment" name="comment"></textarea>
+      </div>
+    </div>
+    <input class="btn btn-secondary" type="submit" value="Send the Comment">
+  </form>
+{% endif %}
+
+{% if can_send %}
+  <p><a class="btn btn-lg btn-success" role="button" href="{{ url_for('c.dosend', user=user.code) }}">Send a Postcard</a></p>
+{% endif %}
+
+{% if req %}
+  <p class="font-italic">You have requested a postcard from them.</p>
+{% elif can_request %}
+    <p><a class="btn btn-lg btn-primary" role="button" href="{{ url_for('c.req', code=user.code) }}">Request a Postcard</a></p>
+{% endif %}
+
+{% if code and not code.received_on %}
+<a class="mt-3 btn btn-sm btn-secondary" role="button" href="{{ url_for('c.togglesent', code=code.code) }}">
+  {% if not code.sent_on %}Mark as sent{% else %}Mark as not sent{% endif %}
+</a>
+{% endif %}
+
+{% endblock %}
