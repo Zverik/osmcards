@@ -68,6 +68,9 @@ Welcome
       <div class="form-check ml-3">
         {{ subfield(class='form-check-input')|safe }}
         {{ subfield.label(class='form-check-label') }}
+        {% if subfield.data == 4 %}
+        <small class="form-text text-muted">There are {{ count_confirmed }} confirmed users.</small>
+        {% endif %}
       </div>
     {% endfor %}
   </div>

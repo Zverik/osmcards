@@ -1,3 +1,4 @@
+---
 - name: Checkout osmcards
   git:
     repo: https://github.com/Zverik/osmcards.git
@@ -5,9 +6,17 @@
   notify: touch osmcards
 
 - name: Upload osmcards config
-  copy:
-    src: config.py
+  template:
+    src: config.py.tmpl
     dest: /opt/src/osmcards/config.py
+
+- name: Install virtualenv
+  become: yes
+  apt:
+    name:
+      - python3-virtualenv
+      - python3-dev
+    state: present
 
 - name: Create virtualenv
   pip:
@@ -15,7 +24,7 @@
     virtualenv: /opt/src/osmcards/venv
     virtualenv_python: python3.8
 
-- name: Set up database
+- name: Init the database
   import_tasks: db.yml
 
 - name: Set up nginx and uwsgi

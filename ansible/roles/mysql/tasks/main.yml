@@ -1,5 +1,5 @@
 ---
 - name: Install mysql
   apt:
-    name: mysql
+    name: mariadb-server
     state: present

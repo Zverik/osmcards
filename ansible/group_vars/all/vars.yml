@@ -16,3 +16,10 @@ certbot_create_if_missing: true
 certbot_certs:
   - domains:
     - osmcards.org
+
+mysql_packages:
+  - mariadb-server
+  - mariadb-client
+mysql_python_package_debian: python3-mysqldb
+mysql_root_password: "{{ v_mariadb_root_password }}"
+# mysql_root_password_update: true

@@ -3,3 +3,4 @@ Pipfile.lock
 __pycache__/
 ansible/.*
 ansible/roles.galaxy
+*.swp

@@ -1,16 +1,21 @@
 ---
 - name: Create MySQL database
+  become: yes
   mysql_db:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
     name: osmcards
+    encoding: utf8
     state: present
 
 - name: Create MySQL user
+  become: yes
   mysql_user:
-    - host: localhost
-    - name: osmcards
-    - password: "{{ mysql_osmcards_password }}"
-    - priv: osmcards.*:ALL
-    - state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    host: localhost
+    name: osmcards
+    password: "{{ mysql_osmcards_password }}"
+    priv: osmcards.*:ALL
+    state: present
 
 - name: Migrate the database
   environment:

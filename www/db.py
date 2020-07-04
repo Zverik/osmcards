@@ -69,7 +69,7 @@ class User(BaseModel):
     site_lang = CharField(max_length=7, default='en')
     address = CharField(null=True)  # Properly formatted, with newlines
     is_active = BooleanField(default=True)  # False if not visible. Kind of account deletion
-    privacy = IntegerField(default=AddressPrivacy.CONFIRMED)
+    privacy = IntegerField(default=AddressPrivacy.OPEN)
     does_requests = BooleanField(default=False)
     country = CharField(max_length=250, null=True)  # TODO: free-form or string name?
 

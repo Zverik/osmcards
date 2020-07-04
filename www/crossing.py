@@ -184,7 +184,7 @@ class UserForm(FlaskForm):
     languages = StringField('Languages you can read, comma-separated')
     does_requests = BooleanField('I send postcards on request')
     privacy = RadioField(
-        'Who sees the address',
+        'Who sees my address',
         choices=[
             (2, 'Anybody at random'),
             (4, 'Confirmed users at random and profile visitors'),
@@ -217,7 +217,18 @@ def user():
             user.save()
             flash('Profile has been updated.', 'info')
             return redirect(url_for('c.user'))
-    return render_template('settings.html', form=form)
+
+    MailCodeAlias = MailCode.alias()
+    count_confirmed = (
+        User.select()
+        .join_from(User, MailCode, on=(
+            (MailCode.sent_by == User.id) & (MailCode.received_on.is_null(False))
+        ))
+        .join_from(User, MailCodeAlias, on=(
+            (MailCodeAlias.sent_to == User.id) & (MailCodeAlias.received_on.is_null(False))
+        )).where(User.is_active == True).count()
+    )
+    return render_template('settings.html', form=form, count_confirmed=count_confirmed)
 
 
 def find_user_to_send():

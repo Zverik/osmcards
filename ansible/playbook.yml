@@ -16,7 +16,7 @@
     - geerlingguy.certbot
     - nginx
     - firewall
-    - mysql
+    - geerlingguy.mysql
 
 - hosts: all
   remote_user: zverik
