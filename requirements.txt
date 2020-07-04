@@ -5,3 +5,4 @@ ruamel-yaml
 authlib
 requests
 flask-wtf
+pymysql
