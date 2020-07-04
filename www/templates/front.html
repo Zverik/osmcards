@@ -7,7 +7,7 @@ to another member of the OpenStreetMap community, just click this button:</p>
 {% if requests %}
 <p>Postcard requests:
   {% for req in requests %}
-  <a href="{{ url_for('c.profile', pcode=req.requested_by.code) }}">{{ req.name }}</a>
+  <a href="{{ url_for('c.profile', pcode=req.requested_by.code) }}">{{ req.requested_by.name }}</a>
   {% endfor %}
 </p>
 {% endif %}

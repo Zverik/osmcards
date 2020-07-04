@@ -286,7 +286,7 @@ def dosend():
 
     user_code = request.args.get('user')
     if user_code:
-        user = User.get_or_none(User.code == code)
+        user = User.get_or_none(User.code == user_code)
         if not user:
             flash('There is no user with this private code.')
             return redirect(url_for('c.front'))
