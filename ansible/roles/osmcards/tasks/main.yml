@@ -3,7 +3,7 @@
   git:
     repo: https://github.com/Zverik/osmcards.git
     dest: /opt/src/osmcards
-  notify: touch osmcards
+  notify: restart uwsgi
 
 - name: Upload osmcards config
   template:

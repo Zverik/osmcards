@@ -14,6 +14,7 @@ from peewee import (
     DatabaseProxy,
     Model,
     CharField,
+    TextField,
     IntegerField,
     ForeignKeyField,
     BooleanField,
@@ -72,10 +73,10 @@ class User(BaseModel):
     osm_uid = IntegerField(index=True)
     osm_name = CharField()
     email = CharField(max_length=250, null=True)
-    description = CharField(null=True)  # "About", like on postcrossing. No links.
+    description = TextField(null=True)  # "About", like on postcrossing. No links.
     languages = CharField(default='English')  # Plain text
     site_lang = CharField(max_length=7, default='en')
-    address = CharField(null=True)  # Properly formatted, with newlines
+    address = TextField(null=True)  # Properly formatted, with newlines
     is_active = BooleanField(default=True)  # False if not visible. Kind of account deletion
     privacy = IntegerField(default=AddressPrivacy.OPEN)
     does_requests = BooleanField(default=False)
@@ -94,7 +95,7 @@ class MailCode(BaseModel):
     sent_address = CharField()
     sent_on = DateTimeField(null=True)
     received_on = DateTimeField(null=True)
-    comment = CharField(null=True)  # Comment from receiver
+    comment = TextField(null=True)  # Comment from receiver
     is_active = BooleanField(default=True)  # Not received and not expired
 
 
@@ -104,7 +105,7 @@ class MailRequest(BaseModel):
     is_hidden = BooleanField(default=False)
     requested_by = ForeignKeyField(User, index=True)
     requested_from = ForeignKeyField(User, index=True)
-    comment = CharField(null=True)
+    comment = TextField(null=True)
 
 
 # MIGRATION #############################################

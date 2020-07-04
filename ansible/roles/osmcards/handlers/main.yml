@@ -3,11 +3,12 @@
   become: yes
   systemd: name=nginx state=restarted
 
-- name: touch osmcards
-  file:
-    path: /opt/src/osmcards/osmcards.wsgi
-    state: touch
-
 - name: restart supervisord
   become: yes
   systemd: name=supervisor state=restarted
+
+- name: restart uwsgi
+  become: yes
+  supervisorctl:
+    name: osmcards
+    state: restarted
