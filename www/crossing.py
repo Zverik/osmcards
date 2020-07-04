@@ -239,6 +239,10 @@ def find_user_to_send():
     ), join_type=JOIN.LEFT_OUTER).where(
         User.id != g.user.id,
         User.is_active == True,
+        User.name.is_null(False),
+        User.name != '',
+        User.address.is_null(False),
+        User.address != '',
         User.privacy <= max_privacy,
         MailCode.code.is_null(True),
     ).order_by(fn_Random())
