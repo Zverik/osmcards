@@ -361,7 +361,7 @@ def profile(pcode=None, scode=None):
         # Should not happen
         return 'Sorry, no user with this code'
 
-    prequest = recent_postcard = None
+    prequest = recent_postcard = they_requested = None
     can_send = can_request = recently_registered = False
     is_me = g.user == puser
     if not is_me:
