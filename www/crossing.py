@@ -301,6 +301,17 @@ def dosend():
     else:
         user = find_user_to_send()
     MailCode.create(code=code, sent_by=g.user, sent_to=user, sent_address=user.address)
+
+    # Clear postcard requests
+    they_requested = MailRequest.get_or_none(
+        MailRequest.requested_by == user,
+        MailRequest.requested_from == g.user,
+        MailRequest.is_active == True
+    )
+    if they_requested:
+        they_requested.is_active = False
+        they_requested.save()
+
     return redirect(url_for('c.profile', scode=code))
 
 
