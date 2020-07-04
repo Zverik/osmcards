@@ -62,6 +62,9 @@
 {% endif %}
 
 {% if can_send %}
+  {% if they_requested %}
+  <p>They requested a postcard from you. Please click this button and send one:</p>
+  {% endif %}
   <p><a class="btn btn-lg btn-success" role="button" href="{{ url_for('c.dosend', user=user.code) }}">Send a Postcard</a></p>
 {% endif %}
 
