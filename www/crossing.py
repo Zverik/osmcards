@@ -335,7 +335,7 @@ def profile(pcode=None, scode=None):
     mailcode = None
     if pcode:
         puser = User.get_or_none(User.code == pcode)
-        if not puser:
+        if not puser or not puser.is_registered:
             flash('There is no user with this private code.')
             return redirect(url_for('c.front'))
     elif scode:
