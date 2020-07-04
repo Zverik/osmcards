@@ -350,11 +350,11 @@ def profile(pcode=None, scode=None):
         # Should not happen
         return 'Sorry, no user with this code'
 
-    request = recent_postcard = None
+    prequest = recent_postcard = None
     can_send = can_request = recently_registered = False
     is_me = g.user == puser
     if not is_me:
-        request = MailRequest.get_or_none(
+        prequest = MailRequest.get_or_none(
             MailRequest.requested_by == g.user,
             MailRequest.requested_from == puser,
             MailRequest.is_active == True
@@ -378,10 +378,10 @@ def profile(pcode=None, scode=None):
             recent_postcard.received_on >= datetime.now() - timedelta(days=1)
         )
         # TODO: ask
-        can_send = not mailcode and puser.privacy <= AddressPrivacy.PROFILE
+        can_send = not mailcode and (prequest or puser.privacy <= AddressPrivacy.PROFILE)
         can_request = not scode and puser.does_requests and not recent_postcard
     return render_template(
-        'profile.html', user=puser, me=is_me, code=mailcode, req=request,
+        'profile.html', user=puser, me=is_me, code=mailcode, req=prequest,
         from_mailcode=scode is not None, can_send=can_send,
         can_request=can_request,
         recent_card=None if not recently_registered else recent_postcard)
