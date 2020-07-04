@@ -22,4 +22,4 @@
     FLASK_APP: /opt/src/osmcards/www
   command: /opt/src/osmcards/venv/bin/flask migrate
   register: db_migrate
-  changed_when: not db_migrate.stdout
+  changed_when: db_migrate.stdout

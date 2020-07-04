@@ -10,6 +10,7 @@ from playhouse.migrate import (
     PostgresqlMigrator
 )
 from peewee import (
+    fn,
     DatabaseProxy,
     Model,
     CharField,
@@ -41,6 +42,13 @@ def init_app(app):
     database.initialize(new_db)
     app.before_request(open_db)
     app.teardown_request(close_db)
+
+
+def fn_Random():
+    if 'mysql' in current_app.config['DATABASE']:
+        return fn.Rand()
+    else:
+        return fn.Random()
 
 
 class AddressPrivacy(IntEnum):

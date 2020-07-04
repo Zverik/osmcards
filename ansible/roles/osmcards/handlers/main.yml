@@ -7,3 +7,7 @@
   file:
     path: /opt/src/osmcards/osmcards.wsgi
     state: touch
+
+- name: restart supervisord
+  become: yes
+  systemd: name=supervisor state=restarted

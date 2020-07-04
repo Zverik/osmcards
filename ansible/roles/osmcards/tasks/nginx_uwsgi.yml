@@ -1,8 +1,54 @@
+- name: Set up uwsgi
+  copy:
+    src: uwsgi.ini
+    dest: /opt/src/uwsgi.ini
+  notify: restart supervisord
+
+- name: Create socket directory
+  become: yes
+  file:
+    path: /run/uwsgi
+    group: www-data
+    owner: www-data
+    state: directory
+
+- name: Install supervisord
+  become: yes
+  apt: name=supervisor state=present
+
+- name: Create log directories
+  become: yes
+  file:
+    path: "{{ item }}"
+    group: www-data
+    state: directory
+    mode: 0755
+  with_items:
+    - /etc/supervisor
+    - /etc/supervisor/conf.d
+    - /var/log/supervisor
+
+- name: Modify supervisor configuration
+  become: yes
+  ini_file: dest=/etc/supervisor/supervisord.conf section=unix_http_server
+            option={{ item.key }} value={{ item.value }}
+  with_dict:
+      chmod: "0770"
+      chown: root:www-data
+
+- name: Upload supervisor configuration to web server home
+  become: yes
+  copy:
+    src: supervisord.conf
+    dest: /etc/supervisor/conf.d/osmcards.conf
+  notify: restart supervisord
+
 - name: Upload nginx site config
   become: yes
   copy:
     src: nginx.conf
     dest: /etc/nginx/sites-available/osmcards.conf
+  notify: restart nginx
 
 - name: Enable osmcards configuration
   become: yes

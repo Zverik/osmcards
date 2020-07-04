@@ -1,5 +1,5 @@
 from . import flask_lang
-from .db import User, MailCode, MailRequest, AddressPrivacy
+from .db import User, MailCode, MailRequest, AddressPrivacy, fn_Random
 from authlib.integrations.flask_client import OAuth
 from authlib.common.errors import AuthlibBaseError
 from xml.etree import ElementTree as etree
@@ -9,7 +9,7 @@ from flask import (
     Blueprint, session, url_for, redirect, request,
     render_template, g, flash
 )
-from peewee import fn, JOIN
+from peewee import JOIN
 from flask_wtf import FlaskForm
 from datetime import datetime, timedelta
 from wtforms import (
@@ -241,7 +241,7 @@ def find_user_to_send():
         User.is_active == True,
         User.privacy <= max_privacy,
         MailCode.code.is_null(True),
-    ).order_by(fn.Random())
+    ).order_by(fn_Random())
     return q.get()
 
 
