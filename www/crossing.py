@@ -415,7 +415,8 @@ def profile(pcode=None, scode=None):
         )
         # TODO: ask
         can_send = not mailcode and (they_requested or puser.privacy <= AddressPrivacy.PROFILE)
-        can_request = not scode and puser.does_requests and not recent_postcard
+        can_request = (not scode and not they_requested and puser.does_requests and
+                       not recent_postcard)
     return render_template(
         'profile.html', user=puser, me=is_me, code=mailcode, req=prequest,
         from_mailcode=scode is not None, can_send=can_send,
