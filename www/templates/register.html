@@ -1,7 +1,8 @@
 {% extends "layout.html" %}
 {% block title %}Register a Postcard &mdash;{% endblock %}
 {% block content %}
-<form action="{{ url_for('c.register') }}">
+<form action="{{ url_for('c.register') }}" method="POST">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   <div class="form-group">
     <label for="code">Code on the postcard</label>
     <input id="code" class="form-control" name="code" value="">

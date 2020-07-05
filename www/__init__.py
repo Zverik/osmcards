@@ -1,6 +1,7 @@
 from . import db
 from . import crossing
 from flask import Flask
+from flask_wtf.csrf import CSRFProtect
 
 
 def create_app(test_config=None):
@@ -15,6 +16,8 @@ def create_app(test_config=None):
     db.init_app(app)
     app.cli.add_command(db.migrate)
     crossing.oauth.init_app(app)
+    csrf = CSRFProtect()
+    csrf.init_app(app)
 
     try:
         from flask_compress import Compress

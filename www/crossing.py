@@ -12,6 +12,7 @@ from flask import (
 from functools import wraps
 from peewee import JOIN
 from flask_wtf import FlaskForm
+from flask_wtf.csrf import CSRFError
 from datetime import datetime, timedelta
 from wtforms import (
     validators, StringField, TextAreaField,
@@ -70,6 +71,12 @@ def before_request():
     g.user = get_user()
     lang = None if not g.user else g.user.site_lang
     flask_lang.load_language(lang)
+
+
+@cross.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    flash('The CSRF token is invalid. Try again maybe.')
+    return redirect(url_for('c.front'))
 
 
 @cross.app_template_global()
@@ -288,7 +295,7 @@ def generate_mail_code():
         return code
 
 
-@cross.route('/dosend')
+@cross.route('/dosend', methods=['POST'])
 @login_requred
 def dosend():
     code = generate_mail_code()
@@ -296,7 +303,7 @@ def dosend():
         flash('Failed to generate a mail code.')
         return redirect(url_for('c.front'))
 
-    user_code = request.args.get('user')
+    user_code = request.form.get('user')
     if user_code:
         user = User.get_or_none(User.code == user_code)
         if not user:
@@ -430,10 +437,10 @@ def togglesent(code):
     return redirect(url_for('c.profile', scode=code))
 
 
-@cross.route('/register')
+@cross.route('/register', methods=['GET', 'POST'])
 @login_requred
 def register():
-    code = request.args.get('code')
+    code = request.form.get('code')
     if not code:
         return render_template('register.html', code=None)
     mailcode = MailCode.get_or_none(
