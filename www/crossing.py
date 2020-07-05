@@ -334,9 +334,10 @@ def dosend():
     return redirect(url_for('c.profile', scode=code))
 
 
-@cross.route('/request/<code>')
+@cross.route('/request', methods=['POST'])
 @login_requred
-def req(code):
+def req():
+    code = request.form['code']
     user = User.get_or_none(User.code == code)
     if not user:
         flash('There is no user with this private code.')

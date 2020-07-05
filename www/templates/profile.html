@@ -65,13 +65,21 @@
   {% if they_requested %}
   <p>They requested a postcard from you. Please click this button and send one:</p>
   {% endif %}
-  <p><a class="btn btn-lg btn-success" role="button" href="{{ url_for('c.dosend', user=user.code) }}">Send a Postcard</a></p>
+  <form action="{{ url_for('c.dosend') }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="user" value="{{ user.code }}"/>
+    <input type="submit" class="btn btn-lg btn-success" value="Send a Postcard">
+  </form>
 {% endif %}
 
 {% if req %}
   <p class="font-italic">You have requested a postcard from them.</p>
 {% elif can_request %}
-    <p><a class="btn btn-lg btn-primary" role="button" href="{{ url_for('c.req', code=user.code) }}">Request a Postcard</a></p>
+  <form action="{{ url_for('c.req') }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="user" value="{{ user.code }}"/>
+    <input type="submit" class="btn btn-lg btn-primary" value="Request a Postcard">
+  </form>
 {% endif %}
 
 {% if code and not code.received_on %}
