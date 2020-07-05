@@ -9,6 +9,7 @@ from flask import (
     Blueprint, session, url_for, redirect, request,
     render_template, g, flash
 )
+from functools import wraps
 from peewee import JOIN
 from flask_wtf import FlaskForm
 from datetime import datetime, timedelta
@@ -53,6 +54,17 @@ def get_user():
     return None
 
 
+def login_requred(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not g.user:
+            return redirect(url_for('c.login', next=request.url))
+        if not g.user.is_registered:
+            return redirect(url_for('c.user'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @cross.before_request
 def before_request():
     g.user = get_user()
@@ -83,6 +95,8 @@ def generate_user_code():
 
 @cross.route('/login')
 def login():
+    if request.args.get('next'):
+        session['next'] = request.args['next']
     redirect_uri = url_for('c.auth', _external=True)
     return oauth.openstreetmap.authorize_redirect(redirect_uri)
 
@@ -252,9 +266,8 @@ def find_user_to_send():
 
 
 @cross.route('/send')
+@login_requred
 def send():
-    if not g.user:
-        return redirect(url_for('c.front'))
     try:
         find_user_to_send()
     except User.DoesNotExist:
@@ -276,9 +289,8 @@ def generate_mail_code():
 
 
 @cross.route('/dosend')
+@login_requred
 def dosend():
-    if not g.user:
-        return redirect(url_for('c.front'))
     code = generate_mail_code()
     if not code:
         flash('Failed to generate a mail code.')
@@ -316,9 +328,8 @@ def dosend():
 
 
 @cross.route('/request/<code>')
+@login_requred
 def req(code):
-    if not g.user:
-        return redirect(url_for('c.front'))
     user = User.get_or_none(User.code == code)
     if not user:
         flash('There is no user with this private code.')
@@ -342,6 +353,7 @@ def req(code):
 @cross.route('/profile')
 @cross.route('/profile/<pcode>')
 @cross.route('/send/<scode>')
+@login_requred
 def profile(pcode=None, scode=None):
     mailcode = None
     if pcode:
@@ -404,9 +416,8 @@ def profile(pcode=None, scode=None):
 
 
 @cross.route('/togglesent/<code>')
+@login_requred
 def togglesent(code):
-    if not g.user:
-        return redirect(url_for('c.front'))
     mailcode = MailCode.get_or_none(MailCode.code == code)
     if not mailcode or mailcode.sent_by != g.user:
         flash('No such mailcode.')
@@ -420,9 +431,8 @@ def togglesent(code):
 
 
 @cross.route('/register')
+@login_requred
 def register():
-    if not g.user:
-        return redirect(url_for('c.front'))
     code = request.args.get('code')
     if not code:
         return render_template('register.html', code=None)
@@ -454,9 +464,8 @@ def register():
 
 
 @cross.route('/comment/<code>', methods=['POST'])
+@login_requred
 def comment(code):
-    if not g.user:
-        return redirect(url_for('c.front'))
     mailcode = MailCode.get_or_none(
         MailCode.code == code,
         MailCode.sent_to == g.user
@@ -476,6 +485,7 @@ def comment(code):
 
 
 @cross.route('/set-lang', methods=['POST'])
+@login_requred
 def set_lang():
     user = g.user
     if not user:
