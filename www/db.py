@@ -24,6 +24,9 @@ from peewee import (
 database = DatabaseProxy()
 
 
+CODE_LETTERS = 'ABCFJKMNPT'
+
+
 def set_up_logging():
     import logging
     logger = logging.getLogger('peewee')
@@ -97,6 +100,24 @@ class MailCode(BaseModel):
     received_on = DateTimeField(null=True)
     comment = TextField(null=True)  # Comment from receiver
     is_active = BooleanField(default=True)  # Not received and not expired
+
+    @property
+    def lcode(self):
+        """Letter code: A2345 for 12345."""
+        s = str(self.code)
+        return CODE_LETTERS[int(s[0]) - 1] + s[1:]
+
+    @staticmethod
+    def restore_code(code):
+        if not code:
+            return None
+        if isinstance(code, int):
+            return code
+        code = code.upper()
+        cl_idx = CODE_LETTERS.find(code[0])
+        if cl_idx >= 0:
+            code = str(cl_idx + 1) + code[1:]
+        return int(code)
 
 
 class MailRequest(BaseModel):

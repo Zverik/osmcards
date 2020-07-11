@@ -14,14 +14,14 @@ to another member of the OpenStreetMap community, just click this button:</p>
 {% if mailcodes %}
 <p>Postcards to send:
   {% for code in mailcodes %}
-  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.code }}</a>
+  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.lcode }}</a>
   {% endfor %}
 </p>
 {% endif %}
 {% if sent_cards %}
 <p>Travelling postcards:
   {% for code in sent_cards %}
-  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.code }}</a>
+  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.lcode }}</a>
   {% endfor %}
 </p>
 {% endif %}

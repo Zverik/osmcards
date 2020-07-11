@@ -22,12 +22,12 @@
   <h2>{{ user.name }}</h2>
   <p>Your postcard has been received — thank you!</p>
 {% else %}
-  <h2>Send postcard #{{ code.code }} to {{ user.name }}</h2>
+  <h2>Send postcard #{{ code.lcode }} to {{ user.name }}</h2>
   {% if code.sent_on %}
     <p>You have marked that you have sent the postcard to this address:</p>
   {% else %}
     <p>You should mail it to this address — do not forget to write the
-      number "{{ code.code }}" on it!</p>
+      code "{{ code.lcode }}" on it!</p>
   {% endif %}
 {% endif %}
 

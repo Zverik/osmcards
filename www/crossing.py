@@ -275,6 +275,16 @@ def find_user_to_send():
 @cross.route('/send')
 @login_requred
 def send():
+    max_cards = 4 if not g.user.is_confirmed else 8
+    has_cards = MailCode.select().where(
+        MailCode.sent_by == g.user,
+        MailCode.is_active == True
+    ).count()
+    if has_cards >= max_cards:
+        flash('You have got too many cards travelling, '
+              'please wait until some of these are delivered.')
+        return redirect(url_for('c.front'))
+
     try:
         find_user_to_send()
     except User.DoesNotExist:
@@ -446,7 +456,7 @@ def register():
     if not code:
         return render_template('register.html', code=None)
     mailcode = MailCode.get_or_none(
-        MailCode.code == code,
+        MailCode.code == MailCode.restore_code(code),
         MailCode.sent_to == g.user,
     )
     if not mailcode:
