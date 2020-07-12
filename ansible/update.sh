@@ -1,2 +1,2 @@
 #!/bin/bash
-ansible-playbook -i hosts playbook.yml --tags osmcards
+ansible-playbook -v -i hosts playbook.yml --tags osmcards

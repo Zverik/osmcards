@@ -15,11 +15,11 @@
   args:
     chdir: /opt/src/osmcards
   register: tx_pull
-  changed_when: "'WARNING' in tx_pull.stdout"
+  changed_when: "' -> ' in tx_pull.stdout"
   tags: osmcards
 
 - name: Looking for po files
-  when: "'WARNING' in tx_pull.stdout"
+  when: "' -> ' in tx_pull.stdout"
   find:
     paths: /opt/src/osmcards/www/translations
     patterns: messages.po

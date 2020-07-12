@@ -117,7 +117,10 @@ class MailCode(BaseModel):
         cl_idx = CODE_LETTERS.find(code[0])
         if cl_idx >= 0:
             code = str(cl_idx + 1) + code[1:]
-        return int(code)
+        try:
+            return int(code)
+        except ValueError:
+            return 0
 
 
 class MailRequest(BaseModel):
