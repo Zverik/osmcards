@@ -25,10 +25,14 @@
     requirements: /opt/src/osmcards/requirements.txt
     virtualenv: /opt/src/osmcards/venv
     virtualenv_python: python3.8
+    state: present
   tags: osmcards
 
 - name: Init the database
   import_tasks: db.yml
+
+- name: Set up translations
+  import_tasks: translations.yml
 
 - name: Set up nginx and uwsgi
   import_tasks: nginx_uwsgi.yml

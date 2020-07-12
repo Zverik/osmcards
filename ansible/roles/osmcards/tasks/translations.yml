@@ -1,0 +1,45 @@
+---
+- name: Install transifex
+  pip:
+    virtualenv: /opt/src/osmcards/venv
+    name: transifex-client
+    state: present
+
+- name: Upload transifex configuration
+  template:
+    src: transifexrc
+    dest: "{{ lookup('env','HOME') }}/.transifexrc"
+
+- name: Download translations
+  command: /opt/src/osmcards/venv/bin/tx pull -a
+  args:
+    chdir: /opt/src/osmcards
+  register: tx_pull
+  changed_when: "'WARNING' in tx_pull.stdout"
+  tags: osmcards
+
+- name: Looking for po files
+  when: "'WARNING' in tx_pull.stdout"
+  find:
+    paths: /opt/src/osmcards/www/translations
+    patterns: messages.po
+    file_type: file
+    # age: 1h
+    recurse: yes
+  register: new_translations
+  tags: osmcards
+
+- name: Remove fuzzy marker
+  when: new_translations.files is not undefined
+  replace:
+    path: "{{ item.path }}"
+    regexp: "^#.*fuzzy"
+    replace: ''
+  loop: "{{ new_translations.files }}"
+  tags: osmcards
+
+- name: Compile messages
+  when: new_translations.files is not undefined
+  command: /opt/src/osmcards/venv/bin/pybabel compile -d /opt/src/osmcards/www/translations
+  tags: osmcards
+  notify: restart uwsgi

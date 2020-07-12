@@ -6,6 +6,8 @@ borg_repo: "{{ v_borg_repo }}"
 borg_pass: "{{ v_borg_pass }}"
 borg_key: "{{ v_borg_key }}"
 
+transifex_token: "{{ v_transifex_token }}"
+
 mysql_osmcards_password: "{{ v_mysql_osmcards_password }}"
 osmcards_secret_key: "{{ v_osmcards_secret_key }}"
 openstreetmap_client_id: "{{ v_openstreetmap_client_id }}"
