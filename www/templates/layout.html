@@ -22,12 +22,12 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item active">
-              <a class="nav-link" href="{{ url_for('c.user') }}">Settings</a>
+              <a class="nav-link" href="{{ url_for('c.user') }}">{{ _('Settings') }}</a>
             </li>
           </ul>
         </div>
         <div class="navbar-text">
-          Hello, {{ g.user.name }}!
+          {{ _('Hello, %(username)s', username=g.user.name) }}!
         </div>
         {% endif %}
       </header>

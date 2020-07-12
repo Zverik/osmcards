@@ -6,3 +6,5 @@ authlib
 requests
 flask-wtf
 pymysql
+flask-babel
+flask-mailman

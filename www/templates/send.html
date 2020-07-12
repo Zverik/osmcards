@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
-{% block title %}Send a Postcard &mdash;{% endblock %}
+{% block title %}{{ _("Send a Postcard") }} &mdash;{% endblock %}
 {% block content %}
-<p>You will be given a profile with an address. Please send them a postcard.</p>
+<p>{{ _("You will be given a profile with an address. Please send them a postcard.") }}</p>
 <form action="{{ url_for('c.dosend') }}" method="POST">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-  <input type="submit" class="btn btn-success" value="Continue">
+  <input type="submit" class="btn btn-success" value="{{ _("Continue") }}">
 </form>
 {% endblock %}

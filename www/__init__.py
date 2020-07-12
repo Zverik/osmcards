@@ -1,7 +1,13 @@
 from . import db
 from . import crossing
-from flask import Flask
+from flask import Flask, request
+from flask_compress import Compress
 from flask_wtf.csrf import CSRFProtect
+from flask_babel import Babel
+
+
+# TODO: make a function to find these
+SUPPORTED_LOCALES = ['en', 'ru']
 
 
 def create_app(test_config=None):
@@ -16,14 +22,15 @@ def create_app(test_config=None):
     db.init_app(app)
     app.cli.add_command(db.migrate)
     crossing.oauth.init_app(app)
-    csrf = CSRFProtect()
-    csrf.init_app(app)
+    CSRFProtect(app)
+    babel = Babel(app)
+    Compress(app)
 
-    try:
-        from flask_compress import Compress
-        Compress(app)
-    except ImportError:
-        pass
+    def get_locale():
+        return request.accept_languages.best_match(SUPPORTED_LOCALES)
+
+    if babel.locale_selector_func is None:
+        babel.locale_selector_func = get_locale
 
     app.register_blueprint(crossing.cross)
     return app

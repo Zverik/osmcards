@@ -20,32 +20,29 @@
   <h2>{{ user.name }}</h2>
 {% elif code.received_on %}
   <h2>{{ user.name }}</h2>
-  <p>Your postcard has been received — thank you!</p>
+  <p>{{ _("Your postcard has been received — thank you!") }}</p>
 {% else %}
-  <h2>Send postcard #{{ code.lcode }} to {{ user.name }}</h2>
+  <h2>{{ _("Send postcard #%(code)s to %(user)s", code=code.lcode, user=user.name) }}</h2>
   {% if code.sent_on %}
-    <p>You have marked that you have sent the postcard to this address:</p>
+    <p>{{ _("You have marked that you have sent the postcard to this address") }}:</p>
   {% else %}
-    <p>You should mail it to this address — do not forget to write the
-      code "{{ code.lcode }}" on it!</p>
+    <p>{{ _('You should mail it to this address — do not forget to write the code "%(code)s" on it!', code=code.lcode) }}</p>
   {% endif %}
 {% endif %}
 
 {% if (code and not code.received_on) or me %}
   {% if me %}
-    <p>This is your address.
-    <a href="{{ url_for('c.user') }}">Edit it</a> if it's obsolete or wrong.
-    </p>
-    {% endif %}
+    <p>{{ _("This is your address. <a href='%(url)s'>Edit it</a> if it's obsolete or wrong.", url=url_for('c.user')) }}</p>
+  {% endif %}
   <pre class="pl-3">{{ user.address }}</pre>
 {% endif %}
 
 {% if user.languages %}
-<p>Languages they understand: {{ user.languages }}.</p>
+<p>{{ _("Languages they understand: %(lang)s", lang=user.languages) }}.</p>
 {% endif %}
 
 {% if user.description %}
-  <p>Few words about {{ user.name }}:</p>
+  <p>{{ _("Few words about %(user)s", user=user.name) }}:</p>
   <p class="pl-3 font-italic">{{ user.description }}</p>
 {% endif %}
 
@@ -53,38 +50,38 @@
   <form class="my-5" action="{{ url_for('c.comment', code=recent_card.code) }}" method="POST">
     <div class="row">
       <div class="form-group col-md-6">
-        <label for="comment">Please send the user a comment about their postcard</label>
+        <label for="comment">{{ _("Please send the user a comment about their postcard") }}</label>
         <textarea class="form-control" id="comment" name="comment"></textarea>
       </div>
     </div>
-    <input class="btn btn-secondary" type="submit" value="Send the Comment">
+    <input class="btn btn-secondary" type="submit" value="{{ _("Send the Comment") }}">
   </form>
 {% endif %}
 
 {% if can_send %}
   {% if they_requested %}
-  <p>They requested a postcard from you. Please click this button and send one:</p>
+  <p>{{ _("They requested a postcard from you. Please click this button and send one") }}:</p>
   {% endif %}
   <form class="mb-3" action="{{ url_for('c.dosend') }}" method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <input type="hidden" name="user" value="{{ user.code }}"/>
-    <input type="submit" class="btn btn-lg btn-success" value="Send a Postcard">
+    <input type="submit" class="btn btn-lg btn-success" value="{{ _("Send a Postcard") }}">
   </form>
 {% endif %}
 
 {% if req %}
-  <p class="font-italic">You have requested a postcard from them.</p>
+<p class="font-italic">{{ _("You have requested a postcard from them.") }}</p>
 {% elif can_request %}
   <form class="mb-3" action="{{ url_for('c.req') }}" method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <input type="hidden" name="user" value="{{ user.code }}"/>
-    <input type="submit" class="btn btn-lg btn-primary" value="Request a Postcard">
+    <input type="submit" class="btn btn-lg btn-primary" value="{{ _("Request a Postcard") }}">
   </form>
 {% endif %}
 
 {% if code and not code.received_on %}
 <a class="mt-3 btn btn-sm btn-secondary" role="button" href="{{ url_for('c.togglesent', code=code.code) }}">
-  {% if not code.sent_on %}Mark as sent{% else %}Mark as not sent{% endif %}
+  {% if not code.sent_on %}{{ _("Mark as sent") }}{% else %}{{ _("Mark as not sent") }}{% endif %}
 </a>
 {% endif %}
 

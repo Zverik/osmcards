@@ -5,3 +5,5 @@ ansible/.*
 ansible/roles.galaxy
 *.swp
 *.db
+*.pot
+www/translations/

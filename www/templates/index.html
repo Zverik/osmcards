@@ -2,6 +2,6 @@
 {% block content %}
 <div id="login-panel">
   <div><img src="{{ url_for('static', filename='uz9osm.jpg') }}"></div>
-  <div class="mt-5"><a class="btn btn-success" role="button" href="{{ url_for('c.login') }}">Login with OpenStreetMap</a></div>
+  <div class="mt-5"><a class="btn btn-success" role="button" href="{{ url_for('c.login') }}">{{ _("Login with OpenStreetMap") }}</a></div>
 </div>
 {% endblock %}

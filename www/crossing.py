@@ -1,4 +1,3 @@
-from . import flask_lang
 from .db import User, MailCode, MailRequest, AddressPrivacy, fn_Random
 from authlib.integrations.flask_client import OAuth
 from authlib.common.errors import AuthlibBaseError
@@ -13,6 +12,7 @@ from functools import wraps
 from peewee import JOIN
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFError
+from flask_babel import _, lazy_gettext as _l
 from datetime import datetime, timedelta
 from wtforms import (
     validators, StringField, TextAreaField,
@@ -70,12 +70,12 @@ def login_requred(f):
 def before_request():
     g.user = get_user()
     lang = None if not g.user else g.user.site_lang
-    flask_lang.load_language(lang)
+    # TODO: set sire language
 
 
 @cross.errorhandler(CSRFError)
 def handle_csrf_error(e):
-    flash('The CSRF token is invalid. Try again maybe.')
+    flash(_('The CSRF token is invalid. Try again maybe.'))
     return redirect(url_for('c.front'))
 
 
@@ -88,11 +88,6 @@ def dated_url_for(endpoint, **values):
                                      endpoint, filename)
             values['q'] = int(os.stat(file_path).st_mtime)
     return url_for(endpoint, **values)
-
-
-@cross.app_context_processor
-def inject_lang():
-    return dict(lang=g.lang)
 
 
 def generate_user_code():
@@ -114,7 +109,7 @@ def auth():
     try:
         client.authorize_access_token()
     except AuthlibBaseError:
-        return 'Denied. <a href="' + url_for('c.login') + '">Try again</a>.'
+        return _('Authorization denied. <a href="%s">Try again</a>.', url_for('c.login'))
 
     response = client.get('user/details')
     user_details = etree.fromstring(response.content)
@@ -124,11 +119,12 @@ def auth():
     user = User.get_or_none(osm_uid=uid)
     if not user:
         # No such user, let's create one
-        lang = flask_lang.get_language_from_request()
+        # TODO: proper identifying of languages
+        lang = request.accept_languages.best_match(['en', 'ru'])
         user = User.create(name='', site_lang=lang, osm_uid=uid,
                            osm_name=name, code=generate_user_code())
-        flash('Welcome! Please fill in your name and address to start '
-              'sending and receiving postcards.', 'info')
+        flash(_('Welcome! Please fill in your name and address to start '
+                'sending and receiving postcards.'), 'info')
     else:
         if user.osm_name != name:
             user.osm_name = name
@@ -183,17 +179,18 @@ def front():
 
 class UserForm(FlaskForm):
     name = StringField(
-        'Your name',
-        description='Usually the real one, or whatever you prefer — for postcards and the profile',
+        _l('Your name'),
+        description=_l('Usually the real one, or whatever you prefer — '
+                       'for postcards and the profile'),
         validators=[validators.DataRequired(), validators.Length(min=2)]
     )
     email = StringField(
-        'Email',
-        description='We won\'t send you anything besides notifications',
+        _l('Email'),
+        description=_l('We won\'t send you anything besides notifications'),
         validators=[validators.Optional(), validators.Regexp(r'^[^@]+@.+\.\w+$')])
 
-    description = TextAreaField('Write some words about yourself and what you like')
-    country = StringField('Country', validators=[validators.Optional()])
+    description = TextAreaField(_l('Write some words about yourself and what you like'))
+    country = StringField(_l('Country'), validators=[validators.Optional()])
     # country = SelectField(
     #     'Country',
     #     description='Please excuse me for not using autocomplete yet',
@@ -201,19 +198,19 @@ class UserForm(FlaskForm):
     #     validators=[validators.DataRequired()]
     # )
     address = TextAreaField(
-        'Your postal address, in latin letters',
+        _l('Your postal address, in latin letters'),
         validators=[validators.DataRequired()]
     )
-    languages = StringField('Languages you can read, comma-separated')
-    does_requests = BooleanField('I send postcards on request')
+    languages = StringField(_l('Languages you can read, comma-separated'))
+    does_requests = BooleanField(_l('I send postcards on request'))
     privacy = RadioField(
-        'Who sees my address',
+        _l('Who sees my address'),
         choices=[
-            (2, 'Anybody at random'),
-            (4, 'Confirmed users at random and profile visitors'),
-            (6, 'Profile visitors only'),
-            (8, 'Profile visitors, only after I accept (doesn\'t work for now)'),
-            (10, 'Nobody'),
+            (2, _l('Anybody at random')),
+            (4, _l('Confirmed users at random and profile visitors')),
+            (6, _l('Profile visitors only')),
+            (8, _l('Profile visitors, only after I accept')),
+            (10, _l('Nobody')),
         ],
         coerce=int
     )
@@ -227,7 +224,7 @@ def user():
     form = UserForm(obj=user)
     if form.is_submitted():
         if not form.validate():
-            flash('There are some errors, please fix them.')
+            flash(_('There are some errors, please fix them.'))
             for field in form:
                 if field.errors:
                     print(field, field.errors)
@@ -238,7 +235,7 @@ def user():
                 if v is None or not v.strip():
                     setattr(user, k, None)
             user.save()
-            flash('Profile has been updated.', 'info')
+            flash(_('Profile has been updated.'), 'info')
             return redirect(url_for('c.user'))
 
     MailCodeAlias = MailCode.alias()
@@ -281,14 +278,14 @@ def send():
         MailCode.is_active == True
     ).count()
     if has_cards >= max_cards:
-        flash('You have got too many cards travelling, '
-              'please wait until some of these are delivered.')
+        flash(_('You have got too many cards travelling, '
+                'please wait until some of these are delivered.'))
         return redirect(url_for('c.front'))
 
     try:
         find_user_to_send()
     except User.DoesNotExist:
-        flash('No users without your postcards left, sorry.')
+        flash(_('No users without your postcards left, sorry.'))
         return redirect(url_for('c.front'))
     return render_template('send.html')
 
@@ -310,14 +307,14 @@ def generate_mail_code():
 def dosend():
     code = generate_mail_code()
     if not code:
-        flash('Failed to generate a mail code.')
+        flash(_('Failed to generate a mail code.'))
         return redirect(url_for('c.front'))
 
     user_code = request.form.get('user')
     if user_code:
         user = User.get_or_none(User.code == user_code)
         if not user:
-            flash('There is no user with this private code.')
+            flash(_('There is no user with this private code.'))
             return redirect(url_for('c.front'))
         lastcode = MailCode.get_or_none(
             MailCode.sent_by == g.user,
@@ -325,7 +322,7 @@ def dosend():
             MailCode.is_active == True
         )
         if lastcode:
-            flash('You are already sending them a postcard.')
+            flash(_('You are already sending them a postcard.'))
             return redirect(url_for('c.profile', pcode=user_code))
     else:
         user = find_user_to_send()
@@ -350,7 +347,7 @@ def req():
     code = request.form['code']
     user = User.get_or_none(User.code == code)
     if not user:
-        flash('There is no user with this private code.')
+        flash(_('There is no user with this private code.'))
         return redirect(url_for('c.front'))
 
     old_req = MailRequest.get_or_none(
@@ -359,7 +356,7 @@ def req():
         MailRequest.is_active == True
     )
     if old_req:
-        flash('Sorry, you have already made a request.')
+        flash(_('Sorry, you have already made a request.'))
         return redirect(url_for('c.profile', pcode=code))
     MailRequest.create(
         requested_by=g.user, requested_from=user,
@@ -377,19 +374,19 @@ def profile(pcode=None, scode=None):
     if pcode:
         puser = User.get_or_none(User.code == pcode)
         if not puser or not puser.is_registered:
-            flash('There is no user with this private code.')
+            flash(_('There is no user with this private code.'))
             return redirect(url_for('c.front'))
     elif scode:
         mailcode = MailCode.get_or_none(MailCode.code == scode)
         if not mailcode or mailcode.sent_by != g.user:
-            flash('No such mailcode.')
+            flash(_('No such mailcode.'))
             return redirect(url_for('c.front'))
         puser = mailcode.sent_to
     else:
         puser = g.user
     if not puser:
         # Should not happen
-        return 'Sorry, no user with this code'
+        return _('Sorry, no user with this code.')
 
     prequest = recent_postcard = they_requested = None
     can_send = can_request = recently_registered = False
@@ -439,7 +436,7 @@ def profile(pcode=None, scode=None):
 def togglesent(code):
     mailcode = MailCode.get_or_none(MailCode.code == code)
     if not mailcode or mailcode.sent_by != g.user:
-        flash('No such mailcode.')
+        flash(_('No such mailcode.'))
         return redirect(url_for('c.front'))
     if mailcode.sent_on:
         mailcode.sent_on = None
@@ -460,12 +457,12 @@ def register():
         MailCode.sent_to == g.user,
     )
     if not mailcode:
-        flash('Cannot find a postcard with this code. Please try again.')
+        flash(_('Cannot find a postcard with this code. Please check it again.'))
         return render_template('register.html', code=code)
 
     pcode = mailcode.sent_by.code
     if not mailcode.is_active:
-        flash('This postcard has already been registered. Thank you!', 'info')
+        flash(_('This postcard has already been registered. Thank you!'), 'info')
         if mailcode.received_on and mailcode.sent_by.privacy < AddressPrivacy.CLOSED:
             is_recent = (datetime.now() - mailcode.received_on).total_seconds() < 3600 * 24
             if is_recent:
@@ -475,8 +472,8 @@ def register():
     mailcode.received_on = datetime.now()
     mailcode.is_active = False
     mailcode.save()
-    flash('Thank you for registering the postcard! '
-          'Write a message to the user if you like.', 'info')
+    flash(_('Thank you for registering the postcard! '
+            'Write a message to the user if you like.'), 'info')
     if mailcode.sent_by.privacy < AddressPrivacy.CLOSED:
         return redirect(url_for('c.profile', pcode=pcode))
     return redirect(url_for('c.front'))
@@ -490,16 +487,16 @@ def comment(code):
         MailCode.sent_to == g.user
     )
     if not mailcode:
-        flash('Cannot find a postcard with this code. Please try again.')
+        flash(_('No such mailcode.'))
         return redirect(url_for('c.front'))
     comment = request.form.get('comment', '').strip()
     if comment:
         if mailcode.comment:
-            flash('Cannot change already stored comment, sorry.')
+            flash(_('Cannot change already stored comment, sorry.'))
         else:
             mailcode.comment = comment
             mailcode.save()
-            flash('Comment sent, thank you for connecting!', 'info')
+            flash(_('Comment sent, thank you for connecting!'), 'info')
     return redirect(url_for('c.profile', pcode=mailcode.sent_by.code))
 
 
@@ -510,7 +507,8 @@ def set_lang():
     if not user:
         return redirect(url_for('c.front'))
     new_lang = request.form['lang']
-    if new_lang != user.lang and new_lang in flask_lang.get_supported_languages():
+    # Proper list of languages
+    if new_lang != user.lang and new_lang in ['en', 'ru']:
         user.lang = new_lang
         user.save()
     return redirect(request.form.get('redirect', url_for('c.user')))
