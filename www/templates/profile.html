@@ -34,7 +34,7 @@
   {% if me %}
     <p>{{ _("This is your address. <a href='%(url)s'>Edit it</a> if it's obsolete or wrong.", url=url_for('c.user')) }}</p>
   {% endif %}
-  <pre class="pl-3">{{ user.address }}</pre>
+  <p class="pl-3 pre-wrap text-monospace">{{ user.address }}</p>
 {% endif %}
 
 {% if user.languages %}
@@ -43,7 +43,7 @@
 
 {% if user.description %}
   <p>{{ _("Few words about %(user)s", user=user.name) }}:</p>
-  <p class="pl-3 font-italic">{{ user.description }}</p>
+  <p class="pl-3 font-italic pre-wrap">{{ user.description }}</p>
 {% endif %}
 
 {% if recent_card and not recent_card.comment %}

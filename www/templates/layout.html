@@ -13,24 +13,21 @@
         {% block header %}{% endblock %}
     </head>
     <body>
-      <header class="navbar navbar-light navbar-expand-lg" style="background-color: #e3f2fd;">
+      <nav class="navbar navbar-light navbar-expand-sm" style="background-color: #e3f2fd;">
         <a class="navbar-brand mb-0 h1" href="{{ url_for('c.front') }}">OSM Cards</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
         {% if g.user and g.user.is_registered %}
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav">
-            <li class="nav-item active">
-              <a class="nav-link" href="{{ url_for('c.user') }}">{{ _('Settings') }}</a>
-            </li>
-          </ul>
-        </div>
-        <div class="navbar-text">
-          {{ _('Hello, %(username)s', username=g.user.name) }}!
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="{{ url_for('c.user') }}">{{ _('Settings') }}</a>
+          </li>
+        </ul>
+        <div class="collapse navbar-collapse flex-grow-0">
+          <div class="navbar-text">
+            {{ _('Hello, %(username)s', username=g.user.name) }}!
+          </div>
         </div>
         {% endif %}
-      </header>
+      </nav>
 
       <div class="container-md py-4">
 {% with messages = get_flashed_messages(True) %}

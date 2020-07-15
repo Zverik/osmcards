@@ -131,6 +131,7 @@ def auth():
             user.save()
 
     session['uid'] = user.id
+    session.permanent = True
     if not user.is_registered:
         return redirect(url_for('c.user'))
 
