@@ -345,7 +345,7 @@ def dosend():
 @cross.route('/request', methods=['POST'])
 @login_requred
 def req():
-    code = request.form['code']
+    code = request.form.get('user')
     user = User.get_or_none(User.code == code)
     if not user:
         flash(_('There is no user with this private code.'))
