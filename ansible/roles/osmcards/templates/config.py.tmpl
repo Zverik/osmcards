@@ -3,5 +3,11 @@ OPENSTREETMAP_CLIENT_SECRET = '{{ openstreetmap_client_secret }}'
 SECRET_KEY = '{{ osmcards_secret_key }}'
 DATABASE = 'mysql://osmcards:{{ mysql_osmcards_password }}@localhost:5432/osmcards?unix_socket=/var/run/mysqld/mysqld.sock'
 BASE_URL = 'https://osmcards.org'
-EMAIL_FROM = 'noreply@osmcards.org'
+
 REPLY_TO = 'ilya@zverev.info'
+EMAIL_FROM = 'notify@osmcards.org'
+EMAIL_HOST = '{{ email_server }}'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_USERNAME = '{{ email_user }}'
+EMAIL_PASSWORD = '{{ email_password }}'

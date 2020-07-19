@@ -25,3 +25,7 @@ mysql_packages:
 mysql_python_package_debian: python3-mysqldb
 mysql_root_password: "{{ v_mariadb_root_password }}"
 # mysql_root_password_update: true
+
+email_server: "{{ v_email_server }}"
+email_user: "{{ v_email_user }}"
+email_password: "{{ v_email_password }}"

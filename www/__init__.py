@@ -1,5 +1,6 @@
 from . import db
 from . import crossing
+from .mail import mail
 from flask import Flask, request
 from flask_compress import Compress
 from flask_wtf.csrf import CSRFProtect
@@ -25,6 +26,7 @@ def create_app(test_config=None):
     CSRFProtect(app)
     babel = Babel(app)
     Compress(app)
+    mail.init_app(app)
 
     def get_locale():
         return request.accept_languages.best_match(SUPPORTED_LOCALES)

@@ -4,114 +4,21 @@ body {
     line-height: 1.5;
 }
 
-.wrapper {
-    width: 90%;
-    margin: 0 5%;
-    overflow: hidden;
-}
-
-.container-md aa {
-  text-decoration: underline !important;
-}
-
 .navbar-brand {
   font-weight: bold;
   font-family: "PT Sans Caption", sans-serif;
 }
 
-.small {
-    display: none;
+.container-md a {
+  text-decoration: underline;
 }
 
-.right {
-    float: right;
+.container-md a.btn {
+  text-decoration: none;
 }
-
-.flashes {
-    list-style-type: none;
-    padding: 0;
-    color: darkgreen;
-}
-
-@media only screen and (max-width: 479px) {
-    .normal {
-        display: none;
-    }
-
-    .small {
-        display: block;
-    }
-}
-
-@media only screen and (min-width: 940px) {
-    .wrapper {
-        width: 800px;
-        margin: 0 auto;
-    }
-}
-
-#header {
-    padding: 0.5em 0;
-    background-color: #335;
-    color: #eee;
-}
-
-#header a {
-    color: #eee;
-}
-
-#header .link {
-    margin-right: 0.4em;
-}
-
-#header .link:last-child {
-    margin-right: 0;
-}
-
-#header select {
-    overflow: hidden;
-    background-color: #335;
-    color: #eee;
-    border: none;
-}
-
-#task {
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto 3em;
-}
-
-#emoji {
-    font-size: 100px;
-    margin: 0;
-}
-
-#userinfo {
-    text-align: center;
-    font-size: 60px;
-    margin-top: 100px;
-}
-
-#userinfo p {
-    margin: 0;
-}
-
-#userinfo .stars {
-    font-size: 120px;
-}
-
-#login-panel { text-align: center; margin: 2em 0 2em; }
-#login { margin-top: 5em; }
-#login a { padding: 1em 3em; border-radius: 10px; background-color: green; color: white; font-weight: bold; text-decoration: none; font-family: Verdana, Arial, sans-serif; }
-#login a:hover { color: yellow; }
-
-.autocomplete-suggestions { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; border: 1px solid #999; background: #FFF; cursor: default; overflow: auto; -webkit-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); -moz-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); }
-.autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
-.autocomplete-no-suggestion { padding: 2px 5px;}
-.autocomplete-selected { background: #F0F0F0; }
-.autocomplete-suggestions strong { font-weight: bold; color: #000; }
-.autocomplete-group { padding: 2px 5px; font-weight: bold; font-size: 16px; color: #000; display: block; border-bottom: 1px solid #000; }
 
 .pre-wrap {
   white-space: pre-wrap;
 }
+
+#login-panel { text-align: center; margin: 2em 0 2em; }
