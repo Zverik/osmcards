@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block title %}Statistics &mdash;{% endblock %}
+{% block content %}
+
+<h1>Users</h1>
+{{ users }}
+
+<h1>Received Postcards</h1>
+{{ received }}
+
+<h1>All Postcards</h1>
+{{ codes }}
+
+<h1>Requests</h1>
+{{ requests }}
+
+<h1>Error Log</h1>
+<div class="text-light bg-dark text-monospace">
+{% for line in log %}{{ line }}<br>{% endfor %}
+</div>
+
+{% endblock %}

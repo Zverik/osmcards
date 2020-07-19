@@ -8,3 +8,4 @@ flask-wtf
 pymysql
 flask-babel
 flask-mailman
+flask-table

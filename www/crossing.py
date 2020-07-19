@@ -7,7 +7,8 @@ from random import randrange, choices
 import os
 from flask import (
     Blueprint, session, url_for, redirect, request,
-    render_template, g, flash, current_app
+    render_template, g, flash, current_app,
+    send_from_directory
 )
 from functools import wraps
 from peewee import JOIN
@@ -22,6 +23,7 @@ from wtforms import (
     validators, StringField, TextAreaField,
     BooleanField, RadioField
 )
+from flask_table import Table, Col, OptCol, LinkCol, BoolNaCol, DateCol
 
 
 oauth = OAuth()
@@ -122,6 +124,11 @@ def send_email(user, subject, body):
         flash(_('Other user was not notified: %(error)s', error=e))
         return False
     return True
+
+
+@cross.route('/robots.txt')
+def robots():
+    return send_from_directory(cross.static_folder, request.path[1:])
 
 
 def generate_user_code():
@@ -592,6 +599,130 @@ def comment(code):
                 )
             flash(_('Comment sent, thank you for connecting!'), 'info')
     return redirect(url_for('c.card', code=mailcode.code))
+
+
+class LCodeCol(Col):
+    def td_format(self, content):
+        s = str(content)
+        CODE_LETTERS = 'ABCFJKMNPT'
+        return CODE_LETTERS[int(s[0]) - 1] + s[1:]
+
+
+class UsersTable(Table):
+    classes = ['table', 'table-sm']
+    id = Col('id')
+    created_on = DateCol('Created')
+    name = LinkCol('Name', 'c.profile', attr='name', url_kwargs={'pcode': 'code'})
+    osm_name = Col('OSM Name')
+    country = Col('Country')
+    privacy = OptCol('Privacy', {
+        2: 'Open', 4: 'Confirmed', 6: 'Profile',
+        8: 'Ask', 10: 'Closed'
+    })
+    does_requests = BoolNaCol('Requests?')
+    is_active = BoolNaCol('Active?')
+
+
+class CodesTable(Table):
+    classes = ['table', 'table-sm']
+    code = LCodeCol('Code')
+    sent_by = Col('By')
+    sent_to = Col('From')
+    created_on = DateCol('Created')
+    sent_on = DateCol('Sent')
+    received_on = DateCol('Received')
+    is_active = BoolNaCol('Active?')
+
+
+class ReceivedTable(Table):
+    classes = ['table', 'table-sm']
+    code = LCodeCol('Code')
+    sent_by = Col('By')
+    sent_to = Col('From')
+    created_on = DateCol('Created')
+    sent_on = DateCol('Sent')
+    received_on = DateCol('Received')
+
+
+class RequestsTable(Table):
+    classes = ['table', 'table-sm']
+    created_on = DateCol('Created')
+    req_by = Col('By')
+    req_from = Col('From')
+    is_hidden = BoolNaCol('Hidden?')
+    is_active = BoolNaCol('Active?')
+
+
+@cross.route('/stats')
+@login_requred
+def admin():
+    if g.user.id != 1:
+        return redirect(url_for('c.front'))
+
+    User2 = User.alias()
+    codes = CodesTable(
+        MailCode.select(
+            MailCode.code, User.name.alias('sent_by'),
+            User2.name.alias('sent_to'), MailCode.created_on,
+            MailCode.sent_on, MailCode.received_on,
+            MailCode.is_active
+        )
+        .join(User, on=MailCode.sent_by == User.id)
+        .join_from(MailCode, User2, on=MailCode.sent_to)
+        .order_by(MailCode.created_on.desc()).limit(30)
+        .dicts()
+    )
+    received = ReceivedTable(
+        MailCode.select(
+            MailCode.code, User.name.alias('sent_by'),
+            User2.name.alias('sent_to'), MailCode.created_on,
+            MailCode.sent_on, MailCode.received_on,
+            MailCode.is_active
+        )
+        .join(User, on=MailCode.sent_by == User.id)
+        .join_from(MailCode, User2, on=MailCode.sent_to)
+        .where(MailCode.received_on.is_null(False))
+        .order_by(MailCode.received_on.desc()).limit(30)
+        .dicts()
+    )
+    requests = RequestsTable(
+        MailRequest.select(
+            MailRequest.created_on, MailRequest.is_active,
+            MailRequest.is_hidden, User.name.alias('req_by'),
+            User2.name.alias('req_from')
+        )
+        .join(User, on=MailRequest.requested_by)
+        .join_from(MailRequest, User2, on=MailRequest.requested_from)
+        .order_by(MailRequest.created_on.desc()).limit(30)
+        .dicts()
+    )
+    users = UsersTable(
+        User.select(
+            User.id, User.created_on, User.name, User.osm_name,
+            User.country, User.privacy, User.does_requests, User.is_active,
+            User.code
+        )
+        .where(User.address.is_null(False))
+        .order_by(User.created_on.desc()).limit(50)
+    )
+
+    lines = []
+    try:
+        line = 0
+        need_lines = 100
+        with open('/var/log/supervisor/osmcards-error.log', 'r') as f:
+            for line_str in f:
+                if line < need_lines:
+                    lines.append(line_str)
+                else:
+                    lines[line % need_lines] = line_str
+                line += 1
+        lines = lines[line % need_lines:] + lines[:line % need_lines]
+    except OSError:
+        pass
+
+    return render_template('admin.html', codes=codes, received=received,
+                           requests=requests, users=users, log=lines)
 
 
 @cross.route('/set-lang', methods=['POST'])
