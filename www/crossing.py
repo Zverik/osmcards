@@ -1,4 +1,5 @@
 from .db import User, MailCode, MailRequest, AddressPrivacy, fn_Random
+from .mail import mail, Message
 from authlib.integrations.flask_client import OAuth
 from authlib.common.errors import AuthlibBaseError
 from xml.etree import ElementTree as etree
@@ -6,7 +7,7 @@ from random import randrange, choices
 import os
 from flask import (
     Blueprint, session, url_for, redirect, request,
-    render_template, g, flash
+    render_template, g, flash, current_app
 )
 from functools import wraps
 from peewee import JOIN
@@ -70,7 +71,7 @@ def login_requred(f):
 def before_request():
     g.user = get_user()
     lang = None if not g.user else g.user.site_lang
-    # TODO: set sire language
+    # TODO: set site language
 
 
 @cross.errorhandler(CSRFError)
@@ -88,6 +89,41 @@ def dated_url_for(endpoint, **values):
                                      endpoint, filename)
             values['q'] = int(os.stat(file_path).st_mtime)
     return url_for(endpoint, **values)
+
+
+@cross.app_template_global()
+def format_date(date):
+    MONTHS = [_('Jan'), _('Feb'), _('Mar'), _('Apr'), _('May'),
+              _('Jun'), _('Jul'), _('Aug'), _('Sep'), _('Oct'),
+              _('Nov'), _('Dec')]
+    base = f'{date.day} {MONTHS[date.month-1]}'
+    if date.year != datetime.now().year:
+        base += f' {date.year}'
+    return base
+
+
+def send_email(user, subject, body):
+    if not user.email or '@' not in user.email:
+        return False
+    if not current_app.config['MAIL_SERVER']:
+        return False
+
+    header = _('Hi %(name)s,', name=user.name)
+    footer = 'OSM Cards'
+    msg = Message(
+        subject=subject,
+        body=f'{header}\n\n{body}\n\n{footer}',
+        from_email=('OSM Cards', current_app.config['MAIL_FROM']),
+        to=[f'{user.name} <{user.email}>'],
+        reply_to=[current_app.config['REPLY_TO']]
+    )
+    try:
+        mail.send(msg)
+    except OSError as e:
+        current_app.logger.exception(e)
+        flash(_('Other user was not notified: %(error)s', error=e))
+        return False
+    return True
 
 
 def generate_user_code():
@@ -363,6 +399,12 @@ def req():
         requested_by=g.user, requested_from=user,
         comment='Hey, please send me a postcard!'
     )
+    send_email(user, _('Please send a postcard'), '{}\n\n{}'.format(
+        _('%(user)s has asked you to send them a postcard. '
+          'Please click on the button in their profile and send one!',
+          user=g.user.name),
+        url_for('c.profile', pcode=user.code, _external=True))
+    )
     return redirect(url_for('c.profile', pcode=code))
 
 
@@ -382,6 +424,8 @@ def profile(pcode=None, scode=None):
         if not mailcode or mailcode.sent_by != g.user:
             flash(_('No such mailcode.'))
             return redirect(url_for('c.front'))
+        if mailcode.received_on:
+            return redirect(url_for('c.card', code=mailcode.code))
         puser = mailcode.sent_to
     else:
         puser = g.user
@@ -447,6 +491,31 @@ def togglesent(code):
     return redirect(url_for('c.profile', scode=code))
 
 
+@cross.route('/card/<code>')
+@login_requred
+def card(code):
+    mailcode = MailCode.get_or_none(
+        MailCode.code == code,
+        # (MailCode.sent_by == g.user | MailCode.sent_to == g.user)
+    )
+    if not mailcode:
+        flash(_('Cannot find a postcard with this code. Please check it again.'))
+        return redirect(url_for('c.front'))
+    if not mailcode.received_on:
+        if mailcode.sent_by == g.user:
+            # If the card was not received, show the user profile
+            return redirect(url_for('c.profile', scode=mailcode.code))
+        else:
+            # User should not know the code before they've received the card.
+            # Let's nudge them towards the registering page.
+            return redirect(url_for('c.register'))
+    other_user = mailcode.sent_by if mailcode.sent_to == g.user else mailcode.sent_to
+    return render_template(
+        'card.html', code=mailcode, from_me=mailcode.sent_by == g.user,
+        other_user=other_user,
+        can_see_profile=other_user.privacy < AddressPrivacy.CLOSED)
+
+
 @cross.route('/register', methods=['GET', 'POST'])
 @login_requred
 def register():
@@ -461,23 +530,24 @@ def register():
         flash(_('Cannot find a postcard with this code. Please check it again.'))
         return render_template('register.html', code=code)
 
-    pcode = mailcode.sent_by.code
     if not mailcode.is_active:
         flash(_('This postcard has already been registered. Thank you!'), 'info')
-        if mailcode.received_on and mailcode.sent_by.privacy < AddressPrivacy.CLOSED:
-            is_recent = (datetime.now() - mailcode.received_on).total_seconds() < 3600 * 24
-            if is_recent:
-                return redirect(url_for('c.profile', pcode=pcode))
-        return redirect(url_for('c.front'))
+        return redirect(url_for('c.card', code=mailcode.code))
 
     mailcode.received_on = datetime.now()
     mailcode.is_active = False
     mailcode.save()
+
+    send_email(mailcode.sent_by, _('Your postcard %(code)s has arrived', code=mailcode.lcode),
+               '{}\n\n{}'.format(
+        _('Your postcard to %(user) has arrived and has been registered '
+          'just now, %(days) after sending!', user=g.user.name),
+        url_for('c.card', code=mailcode.code, _external=True))
+    )
+
     flash(_('Thank you for registering the postcard! '
             'Write a message to the user if you like.'), 'info')
-    if mailcode.sent_by.privacy < AddressPrivacy.CLOSED:
-        return redirect(url_for('c.profile', pcode=pcode))
-    return redirect(url_for('c.front'))
+    return redirect(url_for('c.card', code=mailcode.code))
 
 
 @cross.route('/comment/<code>', methods=['POST'])
@@ -485,6 +555,7 @@ def register():
 def comment(code):
     mailcode = MailCode.get_or_none(
         MailCode.code == code,
+        MailCode.received_on.is_null(False),
         MailCode.sent_to == g.user
     )
     if not mailcode:
@@ -497,8 +568,15 @@ def comment(code):
         else:
             mailcode.comment = comment
             mailcode.save()
+            send_email(
+                mailcode.sent_by,
+                _('Comment on your postcard %(code)s', code=mailcode.lcode),
+                '{}\n\n{}\n\n{}'.format(
+                    _('%(user)s has just left a reply to your postcard', user=g.user.name) + ':',
+                    comment, url_for('c.card', code=mailcode.code, _external=True))
+            )
             flash(_('Comment sent, thank you for connecting!'), 'info')
-    return redirect(url_for('c.profile', pcode=mailcode.sent_by.code))
+    return redirect(url_for('c.card', code=mailcode.code))
 
 
 @cross.route('/set-lang', methods=['POST'])

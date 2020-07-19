@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Postcard") }} {{ code.lcode }} &mdash;{% endblock %}
+{% block content %}
+
+<h2>{{ _("Postcard") }} {{ code.lcode }}</h2>
+
+{% set user_link %}
+{% if can_see_profile %}
+<a href="{{ url_for('c.profile', pcode=other_user.code) }}">{{ other_user.name }}</a>
+{% else %}
+{{ other_user.name }}
+{% endif %}
+{% endset %}
+
+{% if from_me %}
+  <p>{{ _("Your postcard has been received by %(user)s — thank you!", user=user_link) }}</p>
+{% else %}
+  <p>{{ _("Your received this postcard from %(user)s.", user=user_link) }}</p>
+{% endif %}
+
+<p>{{ _("Sent on %(sent)s, received on %(received)s.",
+  sent=format_date(code.sent_on or code.created_on),
+  received=format_date(code.received_on)) }}</p>
+
+{% set ndays %}{{ ngettext("%(num)s day", "%(num)s days", (code.received_on - (code.sent_on or code.created_on)).days) }}{% endset %}
+<p>{{ _("%(from_country)s to %(to_country)s in %(days)s.",
+  from_country=code.sent_by.country or _("Unknown country"),
+  to_country=code.sent_to.country or _("Unknown country"), days=ndays) }}</p>
+
+{% if code.comment %}
+  {% if from_me %}
+  <p>{{ _("%(user)s left a reply", user=code.sent_to.name) }}:</p>
+  {% else %}
+  <p>{{ _("You left a reply") }}:</p>
+  {% endif %}
+  <p class="pl-3 font-italic pre-wrap">{{ code.comment }}</p>
+{% elif not from_me and not code.comment %}
+  <form class="my-5" action="{{ url_for('c.comment', code=code.code) }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="row">
+      <div class="form-group col-md-6">
+        <label for="comment">{{ _("Please send the user a comment about their postcard") }}</label>
+        <textarea class="form-control" id="comment" name="comment" rows="8"></textarea>
+      </div>
+    </div>
+    <input class="btn btn-secondary" type="submit" value="{{ _("Send the Comment") }}">
+  </form>
+{% endif %}
+
+{% endblock %}
