@@ -13,7 +13,10 @@ from functools import wraps
 from peewee import JOIN
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFError
-from flask_babel import _, lazy_gettext as _l, format_date, force_locale
+from flask_babel import (
+    _, lazy_gettext as _l, pgettext as _p,
+    format_date, force_locale
+)
 from datetime import datetime, timedelta
 from wtforms import (
     validators, StringField, TextAreaField,
@@ -103,7 +106,7 @@ def send_email(user, subject, body):
     if not current_app.config['MAIL_SERVER']:
         return False
 
-    header = _('Hi %(name)s,', name=user.name)
+    header = _p('mail', 'Hi %(name)s,', name=user.name)
     footer = 'OSM Cards'
     msg = Message(
         subject=subject,
@@ -399,10 +402,11 @@ def req():
         comment='Hey, please send me a postcard!'
     )
     with force_locale(user.site_lang or 'en'):
-        send_email(user, _('Please send a postcard'), '{}\n\n{}'.format(
-            _('%(user)s has asked you to send them a postcard. '
-              'Please click on the button in their profile and send one!',
-              user=g.user.name),
+        send_email(user, _p('mail', '%(user)s wants your postcard', user=g.user.name),
+                   '{}\n\n{}'.format(
+            _p('mail', '%(user)s has asked you to send them a postcard. '
+               'Please click on the button in their profile and send one!',
+               user=g.user.name),
             url_for('c.profile', pcode=g.user.code, _external=True))
         )
     return redirect(url_for('c.profile', pcode=code))
@@ -539,11 +543,13 @@ def register():
     mailcode.save()
 
     with force_locale(mailcode.sent_by.site_lang or 'en'):
-        send_email(mailcode.sent_by, _('Your postcard %(code)s has arrived', code=mailcode.lcode),
-                   '{}\n\n{}'.format(
-            _('Your postcard to %(user) has arrived and has been registered '
-              'just now, %(days) after sending!', user=g.user.name),
-            url_for('c.card', code=mailcode.code, _external=True))
+        send_email(
+            mailcode.sent_by,
+            _p('mail', 'Your postcard %(code)s has been received', code=mailcode.lcode),
+            '{}\n\n{}'.format(
+                _p('mail', 'Your postcard to %(user)s has arrived and has been registered '
+                   'just now!', user=g.user.name),
+                url_for('c.card', code=mailcode.code, _external=True))
         )
 
     flash(_('Thank you for registering the postcard! '
@@ -572,9 +578,10 @@ def comment(code):
             with force_locale(mailcode.sent_by.site_lang or 'en'):
                 send_email(
                     mailcode.sent_by,
-                    _('Comment on your postcard %(code)s', code=mailcode.lcode),
+                    _p('mail', 'Comment on your postcard %(code)s', code=mailcode.lcode),
                     '{}:\n\n{}\n\n{}'.format(
-                        _('%(user)s has just left a reply to your postcard', user=g.user.name),
+                        _p('mail', '%(user)s has just left a reply to your postcard',
+                           user=g.user.name),
                         comment, url_for('c.card', code=mailcode.code, _external=True))
                 )
             flash(_('Comment sent, thank you for connecting!'), 'info')
