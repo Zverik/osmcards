@@ -611,7 +611,7 @@ class LCodeCol(Col):
 class UsersTable(Table):
     classes = ['table', 'table-sm']
     id = Col('id')
-    created_on = DateCol('Created')
+    created_on = DateCol('Created', date_format='d.MM.yyyy')
     name = LinkCol('Name', 'c.profile', attr='name', url_kwargs={'pcode': 'code'})
     osm_name = Col('OSM Name')
     country = Col('Country')
@@ -628,9 +628,9 @@ class CodesTable(Table):
     code = LCodeCol('Code')
     sent_by = Col('By')
     sent_to = Col('From')
-    created_on = DateCol('Created')
-    sent_on = DateCol('Sent')
-    received_on = DateCol('Received')
+    created_on = DateCol('Created', date_format='d.MM.yyyy')
+    sent_on = DateCol('Sent', date_format='d.MM.yyyy')
+    received_on = DateCol('Received', date_format='d.MM.yyyy')
     is_active = BoolNaCol('Active?')
 
 
@@ -639,14 +639,14 @@ class ReceivedTable(Table):
     code = LCodeCol('Code')
     sent_by = Col('By')
     sent_to = Col('From')
-    created_on = DateCol('Created')
-    sent_on = DateCol('Sent')
-    received_on = DateCol('Received')
+    created_on = DateCol('Created', date_format='d.MM.yyyy')
+    sent_on = DateCol('Sent', date_format='d.MM.yyyy')
+    received_on = DateCol('Received', date_format='d.MM.yyyy')
 
 
 class RequestsTable(Table):
     classes = ['table', 'table-sm']
-    created_on = DateCol('Created')
+    created_on = DateCol('Created', date_format='d.MM.yyyy')
     req_by = Col('By')
     req_from = Col('From')
     is_hidden = BoolNaCol('Hidden?')
