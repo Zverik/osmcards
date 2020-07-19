@@ -417,6 +417,7 @@ def req():
 @cross.route('/send/<scode>')
 @login_requred
 def profile(pcode=None, scode=None):
+    # 6 requests for one page! Refactor this somehow maybe.
     mailcode = None
     if pcode:
         puser = User.get_or_none(User.code == pcode)
@@ -451,6 +452,11 @@ def profile(pcode=None, scode=None):
             MailRequest.requested_from == g.user,
             MailRequest.is_active == True
         )
+        they_sending = MailCode.get_or_none(
+            MailCode.sent_by == puser,
+            MailCode.sent_to == g.user,
+            MailCode.is_active == True
+        ) is not None
         if not mailcode:
             mailcode = MailCode.get_or_none(
                 MailCode.sent_by == g.user,
@@ -472,7 +478,7 @@ def profile(pcode=None, scode=None):
         # TODO: ask
         can_send = not mailcode and (they_requested or puser.privacy <= AddressPrivacy.PROFILE)
         can_request = (not scode and not they_requested and puser.does_requests and
-                       not recent_postcard)
+                       not recent_postcard and not they_sending)
     return render_template(
         'profile.html', user=puser, me=is_me, code=mailcode, req=prequest,
         from_mailcode=scode is not None, can_send=can_send,
