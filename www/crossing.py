@@ -630,8 +630,6 @@ class CodesTable(Table):
     sent_to = Col('From')
     created_on = DateCol('Created', date_format='d.MM.yyyy')
     sent_on = DateCol('Sent', date_format='d.MM.yyyy')
-    received_on = DateCol('Received', date_format='d.MM.yyyy')
-    is_active = BoolNaCol('Active?')
 
 
 class ReceivedTable(Table):
@@ -664,12 +662,12 @@ def admin():
     codes = CodesTable(
         MailCode.select(
             MailCode.code, User.name.alias('sent_by'),
-            User2.name.alias('sent_to'), MailCode.created_on,
-            MailCode.sent_on, MailCode.received_on,
-            MailCode.is_active
+            User2.name.alias('sent_to'),
+            MailCode.created_on, MailCode.sent_on
         )
         .join(User, on=MailCode.sent_by == User.id)
         .join_from(MailCode, User2, on=MailCode.sent_to)
+        .where(MailCode.is_active == True)
         .order_by(MailCode.created_on.desc()).limit(30)
         .dicts()
     )
