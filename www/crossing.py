@@ -13,7 +13,7 @@ from functools import wraps
 from peewee import JOIN
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFError
-from flask_babel import _, lazy_gettext as _l
+from flask_babel import _, lazy_gettext as _l, format_date, force_locale
 from datetime import datetime, timedelta
 from wtforms import (
     validators, StringField, TextAreaField,
@@ -70,7 +70,6 @@ def login_requred(f):
 @cross.before_request
 def before_request():
     g.user = get_user()
-    lang = None if not g.user else g.user.site_lang
     # TODO: set site language
 
 
@@ -92,14 +91,10 @@ def dated_url_for(endpoint, **values):
 
 
 @cross.app_template_global()
-def format_date(date):
-    MONTHS = [_('Jan'), _('Feb'), _('Mar'), _('Apr'), _('May'),
-              _('Jun'), _('Jul'), _('Aug'), _('Sep'), _('Oct'),
-              _('Nov'), _('Dec')]
-    base = f'{date.day} {MONTHS[date.month-1]}'
-    if date.year != datetime.now().year:
-        base += f' {date.year}'
-    return base
+def my_format_date(date):
+    if date.year == datetime.now().year:
+        return format_date(date, 'd MMMM')
+    return format_date(date, 'd MMM yyyy')
 
 
 def send_email(user, subject, body):
@@ -203,6 +198,10 @@ def front():
         MailCode.is_active == True,
         MailCode.sent_on.is_null(False)
     ).order_by(MailCode.sent_on.desc())
+    delivered_cards = MailCode.select().where(
+        (MailCode.sent_by == g.user | MailCode.sent_to == g.user),
+        MailCode.received_on.is_null(False)
+    ).order_by(MailCode.received_on.desc()).limit(10)
     requests = MailRequest.select().where(
         MailRequest.requested_from == g.user,
         MailRequest.is_hidden == False,
@@ -211,7 +210,7 @@ def front():
 
     return render_template(
         'front.html', mailcodes=mailcodes, sent_cards=sent_cards,
-        requests=requests)
+        requests=requests, delivered_cards=delivered_cards)
 
 
 class UserForm(FlaskForm):
@@ -399,12 +398,13 @@ def req():
         requested_by=g.user, requested_from=user,
         comment='Hey, please send me a postcard!'
     )
-    send_email(user, _('Please send a postcard'), '{}\n\n{}'.format(
-        _('%(user)s has asked you to send them a postcard. '
-          'Please click on the button in their profile and send one!',
-          user=g.user.name),
-        url_for('c.profile', pcode=user.code, _external=True))
-    )
+    with force_locale(user.site_lang or 'en'):
+        send_email(user, _('Please send a postcard'), '{}\n\n{}'.format(
+            _('%(user)s has asked you to send them a postcard. '
+              'Please click on the button in their profile and send one!',
+              user=g.user.name),
+            url_for('c.profile', pcode=g.user.code, _external=True))
+        )
     return redirect(url_for('c.profile', pcode=code))
 
 
@@ -538,12 +538,13 @@ def register():
     mailcode.is_active = False
     mailcode.save()
 
-    send_email(mailcode.sent_by, _('Your postcard %(code)s has arrived', code=mailcode.lcode),
-               '{}\n\n{}'.format(
-        _('Your postcard to %(user) has arrived and has been registered '
-          'just now, %(days) after sending!', user=g.user.name),
-        url_for('c.card', code=mailcode.code, _external=True))
-    )
+    with force_locale(mailcode.sent_by.site_lang or 'en'):
+        send_email(mailcode.sent_by, _('Your postcard %(code)s has arrived', code=mailcode.lcode),
+                   '{}\n\n{}'.format(
+            _('Your postcard to %(user) has arrived and has been registered '
+              'just now, %(days) after sending!', user=g.user.name),
+            url_for('c.card', code=mailcode.code, _external=True))
+        )
 
     flash(_('Thank you for registering the postcard! '
             'Write a message to the user if you like.'), 'info')
@@ -568,13 +569,14 @@ def comment(code):
         else:
             mailcode.comment = comment
             mailcode.save()
-            send_email(
-                mailcode.sent_by,
-                _('Comment on your postcard %(code)s', code=mailcode.lcode),
-                '{}\n\n{}\n\n{}'.format(
-                    _('%(user)s has just left a reply to your postcard', user=g.user.name) + ':',
-                    comment, url_for('c.card', code=mailcode.code, _external=True))
-            )
+            with force_locale(mailcode.sent_by.site_lang or 'en'):
+                send_email(
+                    mailcode.sent_by,
+                    _('Comment on your postcard %(code)s', code=mailcode.lcode),
+                    '{}:\n\n{}\n\n{}'.format(
+                        _('%(user)s has just left a reply to your postcard', user=g.user.name),
+                        comment, url_for('c.card', code=mailcode.code, _external=True))
+                )
             flash(_('Comment sent, thank you for connecting!'), 'info')
     return redirect(url_for('c.card', code=mailcode.code))
 

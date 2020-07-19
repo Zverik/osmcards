@@ -3,26 +3,38 @@
 <p>{{ _('Welcome to OSM Cards! Here we exchange postcards and emotions. To connect '
   'to another member of the OpenStreetMap community, just click this button') }}:</p>
 <p><a class="btn btn-lg btn-success" role="button" href="{{ url_for('c.send') }}">{{ _('Send a Postcard') }}</a></p>
-<p><a href="{{ url_for('c.register') }}">{{ _('Register a Postcard') }}</a></p>
+<p class="mb-5"><a href="{{ url_for('c.register') }}">{{ _('Register a Postcard') }}</a></p>
+
 {% if requests %}
 <p>{{ _("Postcard requests") }}:
   {% for req in requests %}
-  <a href="{{ url_for('c.profile', pcode=req.requested_by.code) }}">{{ req.requested_by.name }}</a>
+  <a href="{{ url_for('c.profile', pcode=req.requested_by.code) }}">{{ req.requested_by.name }}</a>{{ ',' if not loop.last }}
   {% endfor %}
 </p>
 {% endif %}
+
 {% if mailcodes %}
 <p>{{ _("Postcards to send") }}:
   {% for code in mailcodes %}
-  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.lcode }}</a>
+  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.lcode }}</a>{{ ',' if not loop.last }}
   {% endfor %}
 </p>
 {% endif %}
+
 {% if sent_cards %}
 <p>{{ _("Travelling postcards") }}:
   {% for code in sent_cards %}
-  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.lcode }}</a>
+  <a href="{{ url_for('c.profile', scode=code.code) }}">{{ code.lcode }}</a>{{ ',' if not loop.last }}
   {% endfor %}
 </p>
+{% endif %}
+
+{% if delivered_cards %}
+<p>{{ _("Recently delivered postcards") }}:</p>
+<ul>
+  {% for code in delivered_cards %}
+  <li><a href="{{ url_for('c.card', code=code.code) }}">{% if code.sent_to == g.user %}{{ _("From %(user)s", user=code.sent_by.name) }}{% else %}{{ _("To %(user)s", user=code.sent_to.name) }}{% endif %}</a></li>
+  {% endfor %}
+</ul>
 {% endif %}
 {% endblock %}

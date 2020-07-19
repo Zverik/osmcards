@@ -19,8 +19,8 @@
 {% endif %}
 
 <p>{{ _("Sent on %(sent)s, received on %(received)s.",
-  sent=format_date(code.sent_on or code.created_on),
-  received=format_date(code.received_on)) }}</p>
+  sent=my_format_date(code.sent_on or code.created_on),
+  received=my_format_date(code.received_on)) }}</p>
 
 {% set ndays %}{{ ngettext("%(num)s day", "%(num)s days", (code.received_on - (code.sent_on or code.created_on)).days) }}{% endset %}
 <p>{{ _("%(from_country)s to %(to_country)s in %(days)s.",
