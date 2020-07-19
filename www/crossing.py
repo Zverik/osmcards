@@ -202,7 +202,7 @@ def front():
         MailCode.sent_on.is_null(False)
     ).order_by(MailCode.sent_on.desc())
     delivered_cards = MailCode.select().where(
-        (MailCode.sent_by == g.user | MailCode.sent_to == g.user) &
+        ((MailCode.sent_by == g.user) | (MailCode.sent_to == g.user)) &
         (MailCode.received_on.is_null(False))
     ).order_by(MailCode.received_on.desc()).limit(10)
     requests = MailRequest.select().where(
@@ -500,7 +500,7 @@ def togglesent(code):
 def card(code):
     mailcode = MailCode.get_or_none(
         (MailCode.code == code) &
-        (MailCode.sent_by == g.user | MailCode.sent_to == g.user)
+        ((MailCode.sent_by == g.user) | (MailCode.sent_to == g.user))
     )
     if not mailcode:
         flash(_('Cannot find a postcard with this code. Please check it again.'))
