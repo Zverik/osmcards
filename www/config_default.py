@@ -12,9 +12,9 @@ OAUTH_SECRET = ''
 SECRET_KEY = 'sdkdfsdf213fhsfljhsadf'
 
 REPLY_TO = 'osmcrossing@localhost'
-EMAIL_FROM = 'osmcrossing@localhost'
-EMAIL_HOST = ''
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_USERNAME = ''
-EMAIL_PASSWORD = ''
+MAIL_FROM = 'osmcrossing@localhost'
+MAIL_SERVER = ''
+MAIL_PORT = 465
+MAIL_USE_SSL = True
+MAIL_USERNAME = ''
+MAIL_PASSWORD = ''

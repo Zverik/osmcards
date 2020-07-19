@@ -5,9 +5,9 @@ DATABASE = 'mysql://osmcards:{{ mysql_osmcards_password }}@localhost:5432/osmcar
 BASE_URL = 'https://osmcards.org'
 
 REPLY_TO = 'ilya@zverev.info'
-EMAIL_FROM = 'notify@osmcards.org'
-EMAIL_HOST = '{{ email_server }}'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_USERNAME = '{{ email_user }}'
-EMAIL_PASSWORD = '{{ email_password }}'
+MAIL_FROM = 'notify@osmcards.org'
+MAIL_SERVER = '{{ email_server }}'
+MAIL_PORT = 465
+MAIL_USE_SSL = True
+MAIL_USERNAME = '{{ email_user }}'
+MAIL_PASSWORD = '{{ email_password }}'
