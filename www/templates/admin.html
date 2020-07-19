@@ -2,8 +2,17 @@
 {% block title %}Statistics &mdash;{% endblock %}
 {% block content %}
 
-<h1>Users</h1>
+<ul class="nav nav-tabs" role="navigation">
+  <li class="nav-item"><a class="nav-link {{ 'active' if panel == 'log' }}" href="{{ url_for('c.admin', panel='log') }}">Error Log</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if panel == 'users' }}" href="{{ url_for('c.admin', panel='users') }}">Users</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if panel == 'interact' }}" href="{{ url_for('c.admin', panel='interact') }}">Postcards</a></li>
+</ul>
+
+{% if panel == 'users' %}
+
 {{ users }}
+
+{% elif panel == 'interact' %}
 
 <h1>Received Postcards</h1>
 {{ received }}
@@ -14,11 +23,12 @@
 <h1>Requests</h1>
 {{ requests }}
 
-<h1>Error Log</h1>
-<div class="text-light bg-dark text-monospace" style="font-size: 9pt;">
-  line<br>
-  lin2
+{% elif panel == 'log' %}
+
+<div class="text-light bg-dark text-monospace p-1" style="font-size: 8pt;">
 {% for line in log %}{{ line }}<br>{% endfor %}
 </div>
+
+{% endif %}
 
 {% endblock %}

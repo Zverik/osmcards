@@ -653,11 +653,12 @@ class RequestsTable(Table):
     is_active = BoolNaCol('Active?')
 
 
-@cross.route('/stats')
+@cross.route('/admin')
 @login_requred
 def admin():
     if g.user.id != 1:
         return redirect(url_for('c.front'))
+    panel = request.args.get('panel', 'log')
 
     User2 = User.alias()
     codes = CodesTable(
@@ -721,8 +722,9 @@ def admin():
     except OSError:
         pass
 
-    return render_template('admin.html', codes=codes, received=received,
-                           requests=requests, users=users, log=lines)
+    return render_template(
+        'admin.html', panel=panel, codes=codes, received=received,
+        requests=requests, users=users, log=lines)
 
 
 @cross.route('/set-lang', methods=['POST'])
