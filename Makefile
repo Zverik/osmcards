@@ -1,13 +1,15 @@
-.PHONY: run
+run: venv
+	FLASK_APP=www FLASK_ENV=development venv/bin/flask run
 
-run:
-	FLASK_APP=www FLASK_ENV=development pipenv run flask run
+venv:
+	python3 -m venv $@
+	venv/bin/pip install -r requirements.txt
 
-tr-extract:
-	pipenv run pybabel extract -F babel.cfg -k _l -o messages.pot .
+tr-extract: venv
+	venv/bin/pybabel extract -F babel.cfg -k _l -o messages.pot .
 	tx push -s
 
-tr-update:
+tr-update: venv
 	tx pull -a
 	for lang in www/translations/*; do sed -i '/^#.*fuzzy/d' $$lang/LC_MESSAGES/messages.po; done
-	pipenv run pybabel compile -d www/translations
+	venv/bin/pybabel compile -d www/translations

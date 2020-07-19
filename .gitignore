@@ -7,3 +7,4 @@ ansible/roles.galaxy
 *.db
 *.pot
 www/translations/
+venv/
