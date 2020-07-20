@@ -271,9 +271,6 @@ def user():
     if form.is_submitted():
         if not form.validate():
             flash(_('There are some errors, please fix them.'))
-            for field in form:
-                if field.errors:
-                    print(field, field.errors)
         else:
             form.populate_obj(user)
             for k in ('country', 'email', 'description', 'address'):
@@ -533,24 +530,39 @@ def card(code):
         can_see_profile=other_user.privacy < AddressPrivacy.CLOSED)
 
 
+class RegisterForm(FlaskForm):
+    code = StringField(
+        _l('Code on the postcard'),
+        validators=[validators.DataRequired(), validators.Length(min=5, max=5)]
+    )
+    comment = TextAreaField(
+        _l('Please send the user a comment about their postcard')
+    )
+
+
 @cross.route('/register', methods=['GET', 'POST'])
 @login_requred
 def register():
-    code = request.form.get('code')
-    if not code:
-        return render_template('register.html', code=None)
+    form = RegisterForm()
+    if not form.validate_on_submit():
+        return render_template('register.html', form=form)
+
+    code = form.code.data
     mailcode = MailCode.get_or_none(
         MailCode.code == MailCode.restore_code(code),
         MailCode.sent_to == g.user,
     )
     if not mailcode:
         flash(_('Cannot find a postcard with this code. Please check it again.'))
-        return render_template('register.html', code=code)
+        return render_template('register.html', form=form)
 
     if not mailcode.is_active:
         flash(_('This postcard has already been registered. Thank you!'), 'info')
         return redirect(url_for('c.card', code=mailcode.code))
 
+    comment = form.comment.data.strip()
+    if comment:
+        mailcode.comment = comment
     mailcode.received_on = datetime.now()
     mailcode.is_active = False
     mailcode.save()
@@ -559,14 +571,16 @@ def register():
         send_email(
             mailcode.sent_by,
             _p('mail', 'Your postcard %(code)s has been received', code=mailcode.lcode),
-            '{}\n\n{}'.format(
+            '{}{}\n\n{}'.format(
                 _p('mail', 'Your postcard to %(user)s has arrived and has been registered '
                    'just now!', user=g.user.name),
+                '' if not comment else ' {}:\n\n{}'.format(
+                    _p('mail', 'They have left a reply to it'), comment
+                ),
                 url_for('c.card', code=mailcode.code, _external=True))
         )
 
-    flash(_('Thank you for registering the postcard! '
-            'Write a message to the user if you like.'), 'info')
+    flash(_('Thank you for registering the postcard!'), 'info')
     return redirect(url_for('c.card', code=mailcode.code))
 
 

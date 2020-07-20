@@ -1,11 +1,20 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Register a Postcard") }} &mdash;{% endblock %}
 {% block content %}
-<form action="{{ url_for('c.register') }}" method="POST">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+<form class="col-6" action="{{ url_for('c.register') }}" method="POST">
+  {{ form.csrf_token }}
   <div class="form-group">
-    <label for="code">{{ _("Code on the postcard") }}</label>
-    <input id="code" class="form-control" name="code" value="">
+    {{ form.code.label }}
+    {{ form.code(class='form-control' + (' is-invalid' if form.code.errors else '')) }}
+    {% if form.code.errors %}
+      {% for error in form.code.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    {% endif %}
+  </div>
+  <div class="form-group">
+    {{ form.comment.label }}
+    {{ form.comment(class='form-control', rows=8) }}
   </div>
   <div class="form-group">
     <input class="btn btn-primary" type="submit" value="{{ _("Search") }}">
