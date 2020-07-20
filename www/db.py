@@ -89,6 +89,10 @@ class User(BaseModel):
     def is_registered(self):
         return self.name and self.address and self.is_active
 
+    @property
+    def is_admin(self):
+        return self.id == 1
+
 
 class MailCode(BaseModel):
     created_on = DateTimeField(default=datetime.now)

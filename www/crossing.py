@@ -626,8 +626,8 @@ class UsersTable(Table):
 class CodesTable(Table):
     classes = ['table', 'table-sm']
     code = LCodeCol('Code')
-    sent_by = Col('By')
-    sent_to = Col('From')
+    sent_by = Col('From')
+    sent_to = Col('To')
     created_on = DateCol('Created', date_format='d.MM.yyyy')
     sent_on = DateCol('Sent', date_format='d.MM.yyyy')
 
@@ -635,8 +635,8 @@ class CodesTable(Table):
 class ReceivedTable(Table):
     classes = ['table', 'table-sm']
     code = LCodeCol('Code')
-    sent_by = Col('By')
-    sent_to = Col('From')
+    sent_by = Col('From')
+    sent_to = Col('To')
     created_on = DateCol('Created', date_format='d.MM.yyyy')
     sent_on = DateCol('Sent', date_format='d.MM.yyyy')
     received_on = DateCol('Received', date_format='d.MM.yyyy')
@@ -654,7 +654,7 @@ class RequestsTable(Table):
 @cross.route('/admin')
 @login_requred
 def admin():
-    if g.user.id != 1:
+    if not g.user.is_admin:
         return redirect(url_for('c.front'))
     panel = request.args.get('panel', 'log')
 
