@@ -161,7 +161,7 @@ def auth():
     if not user:
         # No such user, let's create one
         # TODO: proper identifying of languages
-        lang = request.accept_languages.best_match(['en', 'ru'])
+        lang = request.accept_languages.best_match(['en', 'ru']) or 'en'
         user = User.create(name='', site_lang=lang, osm_uid=uid,
                            osm_name=name, code=generate_user_code())
         flash(_('Welcome! Please fill in your name and address to start '
