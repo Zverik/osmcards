@@ -76,8 +76,6 @@ Welcome
         {{ subfield.label(class='form-check-label') }}
         {% if subfield.data == 4 %}
         <small class="form-text text-muted">{{ ngettext("There is %(num)s confirmed user", "There are %(num)s confirmed users", count_confirmed) }}</small>
-        {% elif subfield.data == 8 %}
-        <small class="form-text text-muted">{{ _("Does not work yet") }}</small>
         {% endif %}
       </div>
     {% endfor %}

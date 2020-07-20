@@ -30,7 +30,11 @@
   {% endif %}
 {% endif %}
 
-{% if (code and not code.received_on) or me %}
+{% if asked_for_address %}
+  <p><a class="btn btn-primary" role="button" href="{{ url_for('c.grant', code=asked_for_address.id) }}">Show Them My Address</a></p>
+{% endif %}
+
+{% if (code and not code.received_on and can_see_address) or me %}
   {% if me %}
     <p>{{ _("This is your address. <a href='%(url)s'>Edit it</a> if it's obsolete or wrong.", url=url_for('c.user')) }}</p>
   {% endif %}
@@ -66,6 +70,14 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <input type="hidden" name="user" value="{{ user.code }}"/>
     <input type="submit" class="btn btn-lg btn-success" value="{{ _("Send a Postcard") }}">
+  </form>
+{% endif %}
+
+{% if can_ask %}
+  <form class="mb-3" action="{{ url_for('c.ask') }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="user" value="{{ user.code }}"/>
+    <input type="submit" class="btn btn-lg btn-success" value="{{ _("Ask to Send a Postcard") }}">
   </form>
 {% endif %}
 

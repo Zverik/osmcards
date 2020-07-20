@@ -13,6 +13,14 @@
 </p>
 {% endif %}
 
+{% if addr_requests %}
+<p>{{ _("Address reveal requests") }}:
+  {% for req in addr_requests %}
+  <a href="{{ url_for('c.profile', pcode=req.requested_by.code) }}">{{ req.requested_by.name }}</a>{{ ',' if not loop.last }}
+  {% endfor %}
+</p>
+{% endif %}
+
 {% if mailcodes %}
 <p>{{ _("Postcards to send") }}:
   {% for code in mailcodes %}

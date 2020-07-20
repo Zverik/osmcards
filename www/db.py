@@ -136,10 +136,17 @@ class MailRequest(BaseModel):
     comment = TextField(null=True)
 
 
+class ProfileRequest(BaseModel):
+    created_on = DateTimeField(default=datetime.now)
+    requested_by = ForeignKeyField(User, index=True)
+    requested_from = ForeignKeyField(User, index=True)
+    granted = BooleanField(null=True)
+
+
 # MIGRATION #############################################
 
 
-LAST_VERSION = 0
+LAST_VERSION = 1
 
 
 class Version(BaseModel):
@@ -154,8 +161,9 @@ def migrate():
     try:
         v = Version.select().get()
     except Version.DoesNotExist:
+        # Prints are here to mark a change for Ansible
         print('Creating tables')
-        database.create_tables([User, MailCode, MailRequest])
+        database.create_tables([User, MailCode, MailRequest, ProfileRequest])
         v = Version(version=LAST_VERSION)
         v.save()
 
@@ -172,7 +180,13 @@ def migrate():
     else:
         migrator = PostgresqlMigrator(database)
 
-    # TODO: write migrations here
+    if v.version == 0:
+        database.create_tables([ProfileRequest])
+        v.version = 1
+        v.save()
+
+    # When making further migrations, refer to
+    # https://github.com/mapsme/cf_audit/blob/master/www/db.py
 
     if v.version != LAST_VERSION:
         raise ValueError('LAST_VERSION in db.py should be {}'.format(v.version))

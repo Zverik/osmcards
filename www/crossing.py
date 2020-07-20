@@ -1,4 +1,4 @@
-from .db import User, MailCode, MailRequest, AddressPrivacy, fn_Random
+from .db import User, MailCode, MailRequest, ProfileRequest, AddressPrivacy, fn_Random
 from .mail import mail, Message
 from authlib.integrations.flask_client import OAuth
 from authlib.common.errors import AuthlibBaseError
@@ -217,9 +217,14 @@ def front():
         MailRequest.is_hidden == False,
         MailRequest.is_active == True
     ).order_by(MailRequest.created_on)
+    addr_requests = ProfileRequest.select().where(
+        ProfileRequest.requested_from == g.user,
+        ProfileRequest.granted.is_null(True)
+    ).order_by(ProfileRequest.created_on)
 
     return render_template(
         'front.html', mailcodes=mailcodes, sent_cards=sent_cards,
+        addr_requests=addr_requests,
         requests=requests, delivered_cards=delivered_cards)
 
 
@@ -405,7 +410,7 @@ def req():
         requested_by=g.user, requested_from=user,
         comment='Hey, please send me a postcard!'
     )
-    with force_locale(user.site_lang or 'en'):
+    with force_locale(user.site_lang):
         send_email(user, _p('mail', '%(user)s wants your postcard', user=g.user.name),
                    '{}\n\n{}'.format(
             _p('mail', '%(user)s has asked you to send them a postcard. '
@@ -413,7 +418,68 @@ def req():
                user=g.user.name),
             url_for('c.profile', pcode=g.user.code, _external=True))
         )
+    flash(_('Your postcard request has been sent.'), 'info')
     return redirect(url_for('c.profile', pcode=code))
+
+
+@cross.route('/ask', methods=['POST'])
+@login_requred
+def ask():
+    code = request.form.get('user')
+    user = User.get_or_none(User.code == code)
+    if not user:
+        flash(_('There is no user with this private code.'))
+        return redirect(url_for('c.front'))
+
+    old_req = ProfileRequest.get_or_none(
+        ProfileRequest.requested_by == g.user,
+        ProfileRequest.requested_from == user
+    )
+    if old_req:
+        flash(_('Sorry, you have already made a request.'))
+        return redirect(url_for('c.profile', pcode=code))
+
+    req = ProfileRequest.create(requested_by=g.user, requested_from=user)
+    with force_locale(user.site_lang):
+        send_email(user, _p('mail', '%(user)s wants to send you a postcard', user=g.user.name),
+                   '{}:\n\n{}'.format(
+            _p('mail', '%(user)s has asked you to open your address to them, '
+               'so that they could send you a postcard. Please click on the link '
+               'to grant them permission, or ignore this message to deny',
+               user=g.user.name),
+            url_for('c.grant', code=req.id, _external=True))
+        )
+    flash(_('Permission request sent.', 'info'))
+    return redirect(url_for('c.profile', pcode=code))
+
+
+@cross.route('/grant/<code>')
+@login_requred
+def grant(code):
+    req = ProfileRequest.get_or_none(
+        ProfileRequest.id == code,
+        ProfileRequest.requested_from == g.user
+    )
+    if not req:
+        flash(_('There is no request with this code'))
+        return redirect(url_for('c.front'))
+
+    req.granted = True
+    req.save()
+
+    user = req.requested_by
+    with force_locale(user.site_lang):
+        send_email(user, _p('mail', '%(user)s wants your postcard', user=g.user.name),
+                   '{}\n\n{}'.format(
+            _p('mail', '%(user)s has accepted your request to send them a postcard. '
+               'Please click on the button in their profile and send one!',
+               user=g.user.name),
+            url_for('c.profile', pcode=g.user.code, _external=True))
+        )
+    flash(_('Thank you for granting permission to send you a postcard!'), 'info')
+    if user.privacy < AddressPrivacy.CLOSED:
+        return redirect(url_for('c.profile', pcode=user.code))
+    return redirect(url_for('c.front'))
 
 
 @cross.route('/profile')
@@ -442,10 +508,29 @@ def profile(pcode=None, scode=None):
         # Should not happen
         return _('Sorry, no user with this code.')
 
-    prequest = recent_postcard = they_requested = None
-    can_send = can_request = recently_registered = False
+    prequest = recent_postcard = they_requested = asked_for_address = None
+    can_send = can_request = can_ask = recently_registered = can_see_address = False
     is_me = g.user == puser
     if not is_me:
+        if puser.privacy == AddressPrivacy.ASK:
+            my_request = ProfileRequest.get_or_none(
+                ProfileRequest.requested_by == g.user,
+                ProfileRequest.requested_from == puser
+            )
+            if not my_request:
+                can_ask = True
+            else:
+                can_see_address = my_request.granted
+        else:
+            can_see_address = puser.privacy <= AddressPrivacy.PROFILE
+
+        if g.user.privacy == AddressPrivacy.ASK:
+            asked_for_address = ProfileRequest.get_or_none(
+                ProfileRequest.requested_from == g.user,
+                ProfileRequest.requested_by == puser,
+                ProfileRequest.granted.is_null(True)
+            )
+
         prequest = MailRequest.get_or_none(
             MailRequest.requested_by == g.user,
             MailRequest.requested_from == puser,
@@ -475,19 +560,30 @@ def profile(pcode=None, scode=None):
             ).order_by(MailCode.received_on.desc()).get()
         except MailCode.DoesNotExist:
             pass
+
         recently_registered = (
             recent_postcard and
             recent_postcard.received_on >= datetime.now() - timedelta(days=1)
         )
-        # TODO: ask
-        can_send = not mailcode and (they_requested or puser.privacy <= AddressPrivacy.PROFILE)
+        can_send = not mailcode and (they_requested or can_see_address)
         can_request = (not scode and not they_requested and puser.does_requests and
                        not recent_postcard and not they_sending)
+
     return render_template(
-        'profile.html', user=puser, me=is_me, code=mailcode, req=prequest,
-        from_mailcode=scode is not None, can_send=can_send,
-        can_request=can_request, they_requested=they_requested,
-        recent_card=None if not recently_registered else recent_postcard)
+        'profile.html',
+        user=puser,
+        me=is_me,
+        code=mailcode,
+        req=prequest,
+        from_mailcode=scode is not None,
+        can_send=can_send,
+        can_ask=can_ask,
+        can_request=can_request,
+        can_see_address=can_see_address,
+        they_requested=they_requested,
+        asked_for_address=asked_for_address,
+        recent_card=None if not recently_registered else recent_postcard
+    )
 
 
 @cross.route('/togglesent/<code>')
