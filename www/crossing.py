@@ -128,7 +128,7 @@ def send_email(user, subject, body):
 
 @cross.route('/robots.txt')
 def robots():
-    return send_from_directory(cross.static_folder, request.path[1:])
+    return send_from_directory(current_app.static_folder, request.path[1:])
 
 
 def generate_user_code():
