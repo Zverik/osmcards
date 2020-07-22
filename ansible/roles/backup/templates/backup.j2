@@ -1,0 +1,17 @@
+#!/bin/bash
+set -u -e
+export BORG_REPO={{ borg_repo }}
+export BORG_PASSPHRASE='{{ borg_pass }}'
+export BORG_REMOTE_PATH=borg1
+export BORG_RSH='ssh -i /root/.ssh/borg -oBatchMode=yes'
+
+DBDUMP=/var/tmp/osmcards.sql
+mysqldump --user=osmcards '--password={{ mysql_osmcards_password }}' osmcards > "$DBDUMP"
+
+borg create --compression zstd,5 ::'OSMCards_{now:%Y-%m-%d_%H%M}' \
+  $DBDUMP \
+  /etc/letsencrypt
+
+borg prune --prefix 'OSMCards_' --keep-daily=7 --keep-weekly=2 --keep-monthly=3
+
+rm $DBDUMP

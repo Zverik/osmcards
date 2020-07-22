@@ -13,10 +13,11 @@
     - role: oefenweb.swapfile
       swapfile_size: 1GB
     - geerlingguy.ntp
+    - geerlingguy.mysql
+    - backup
     - geerlingguy.certbot
     - nginx
     - firewall
-    - geerlingguy.mysql
 
 - hosts: all
   remote_user: zverik

@@ -1,0 +1,20 @@
+---
+- name: Install Borg Backup
+  apt: name=borgbackup
+
+- name: Create a private key
+  copy:
+    content: "{{ borg_key }}"
+    dest: /root/.ssh/borg
+    mode: 0600
+
+- name: Add rsync.net to authorized keys
+  known_hosts:
+    host: ch-s012.rsync.net
+    key: 'ch-s012.rsync.net,82.197.184.220 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO5lfML3qjBiDXi4yh3xPoXPHqIOeLNp66P3Unrl+8g3'
+
+- name: Install backup script
+  template:
+    src: backup.j2
+    dest: /etc/cron.daily/backup
+    mode: 0700
