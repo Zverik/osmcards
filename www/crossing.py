@@ -303,7 +303,7 @@ def find_user_to_send():
     max_privacy = AddressPrivacy.CONFIRMED if g.user.is_confirmed else AddressPrivacy.OPEN
     q = User.select().join(MailCode, on=(
         (MailCode.sent_by == g.user) & (MailCode.sent_to == User.id) &
-        ((MailCode.is_active == True) | MailCode.received_on.is_null(True))
+        ((MailCode.is_active == True) | MailCode.received_on.is_null(False))
     ), join_type=JOIN.LEFT_OUTER).where(
         User.id != g.user.id,
         User.is_active == True,
