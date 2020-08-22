@@ -42,6 +42,7 @@ def init_app(app):
         if not database.is_closed():
             database.close()
 
+    # set_up_logging()
     new_db = connect(app.config['DATABASE'])
     database.initialize(new_db)
     app.before_request(open_db)

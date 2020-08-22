@@ -11,7 +11,7 @@ from flask import (
     send_from_directory
 )
 from functools import wraps
-from peewee import JOIN
+from peewee import JOIN, fn
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFError
 from flask_babel import (
@@ -288,13 +288,13 @@ def user():
 
     MailCodeAlias = MailCode.alias()
     count_confirmed = (
-        User.select()
+        User.select(fn.Count(fn.Distinct(User.id)))
         .join_from(User, MailCode, on=(
             (MailCode.sent_by == User.id) & (MailCode.received_on.is_null(False))
         ))
         .join_from(User, MailCodeAlias, on=(
             (MailCodeAlias.sent_to == User.id) & (MailCodeAlias.received_on.is_null(False))
-        )).where(User.is_active == True).count()
+        )).where(User.is_active == True).scalar()
     )
     return render_template('settings.html', form=form, count_confirmed=count_confirmed)
 
