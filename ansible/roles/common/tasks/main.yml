@@ -1,4 +1,14 @@
 ---
+- name: Learn OS
+  setup:
+    gather_subset: '!all'
+    filter: 'ansible_distribution*'
+
+- name: Test for Ubuntu
+  when: ansible_facts['ansible_distribution'] != 'Ubuntu'
+  fail:
+    msg: Requires Ubuntu.
+
 - name: Ensure apt cache is up to date
   apt: update_cache=yes cache_valid_time=3600 upgrade=dist
   changed_when: False

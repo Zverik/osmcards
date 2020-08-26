@@ -39,6 +39,7 @@
     <p>{{ _("This is your address. <a href='%(url)s'>Edit it</a> if it's obsolete or wrong.", url=url_for('c.user')) }}</p>
   {% endif %}
   <p class="pl-3 pre-wrap text-monospace">{{ user.address }}</p>
+  <p>{{ _("Country") }}: {{ user.country }}.</p>
 {% endif %}
 
 {% if user.languages %}
