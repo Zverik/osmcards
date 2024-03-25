@@ -2,7 +2,7 @@
 - name: Install transifex
   become: yes
   unarchive:
-    url: https://github.com/transifex/cli/releases/download/v1.6.10/tx-linux-amd64.tar.gz
+    src: https://github.com/transifex/cli/releases/download/v1.6.10/tx-linux-amd64.tar.gz
     remote_src: true
     dest: /usr/local/bin
     include: [tx]

@@ -4,13 +4,11 @@
     repo: https://github.com/Zverik/osmcards.git
     dest: /opt/src/osmcards
   notify: restart uwsgi
-  tags: osmcards
 
 - name: Upload osmcards config
   template:
     src: config.py.tmpl
     dest: /opt/src/osmcards/config.py
-  tags: osmcards
 
 - name: Install virtualenv
   become: yes
@@ -26,7 +24,6 @@
     virtualenv: /opt/src/osmcards/venv
     virtualenv_python: python3.8
     state: present
-  tags: osmcards
 
 - name: Init the database
   import_tasks: db.yml
