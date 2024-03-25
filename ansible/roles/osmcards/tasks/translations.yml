@@ -1,25 +1,28 @@
 ---
 - name: Install transifex
-  pip:
-    virtualenv: /opt/src/osmcards/venv
-    name: transifex-client
-    state: present
+  become: yes
+  unarchive:
+    url: https://github.com/transifex/cli/releases/download/v1.6.10/tx-linux-amd64.tar.gz
+    remote_src: true
+    dest: /usr/local/bin
+    include: [tx]
+    creates: /usr/local/bin/tx
 
 - name: Upload transifex configuration
   template:
     src: transifexrc
-    dest: "{{ lookup('env','HOME') }}/.transifexrc"
+    dest: "/home/{{ ansible_user }}/.transifexrc"
 
 - name: Download translations
-  command: /opt/src/osmcards/venv/bin/tx pull -a
+  command: tx pull -a
   args:
     chdir: /opt/src/osmcards
   register: tx_pull
-  changed_when: "' -> ' in tx_pull.stdout"
+  changed_when: "'] - Done' in tx_pull.stdout"
   tags: osmcards
 
 - name: Looking for po files
-  when: "' -> ' in tx_pull.stdout"
+  when: tx_pull is changed
   find:
     paths: /opt/src/osmcards/www/translations
     patterns: messages.po

@@ -5,7 +5,7 @@
     filter: 'ansible_distribution*'
 
 - name: Test for Ubuntu
-  when: ansible_facts['ansible_distribution'] != 'Ubuntu'
+  when: ansible_distribution != 'Ubuntu'
   fail:
     msg: Requires Ubuntu.
 

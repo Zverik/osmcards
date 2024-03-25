@@ -1,10 +1,12 @@
 [main]
 host = https://www.transifex.com
 
-[osm-cards.website]
-file_filter = www/translations/<lang>/LC_MESSAGES/messages.po
-minimum_perc = 50
-source_file = messages.pot
-source_lang = en
-type = PO
+[o:openstreetmap:p:osm-cards:r:website]
+file_filter            = www/translations/<lang>/LC_MESSAGES/messages.po
+source_file            = messages.pot
+source_lang            = en
+type                   = PO
+minimum_perc           = 50
+replace_edited_strings = false
+keep_translations      = false
 

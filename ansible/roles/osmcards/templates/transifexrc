@@ -1,5 +1,8 @@
 [https://www.transifex.com]
-api_hostname = https://api.transifex.com
-hostname = https://www.transifex.com
-password = {{ transifex_token }}
-username = api
+api_hostname  = https://api.transifex.com
+hostname      = https://www.transifex.com
+username      = api
+password      = {{ transifex_token }}
+rest_hostname = https://rest.api.transifex.com
+token         = {{ transifex_token }}
+
