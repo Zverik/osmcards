@@ -7,8 +7,8 @@ DATABASE = 'sqlite:///' + os.path.join(BASE_DIR, 'osmcards.db')
 BASE_URL = 'http://localhost:5000'
 ADMINS = [1]
 
-OAUTH_KEY = ''
-OAUTH_SECRET = ''
+OPENSTREETMAP_CLIENT_ID = ''
+OPENSTREETMAP_CLIENT_SECRET = ''
 SECRET_KEY = 'sdkdfsdf213fhsfljhsadf'
 
 REPLY_TO = 'osmcrossing@localhost'

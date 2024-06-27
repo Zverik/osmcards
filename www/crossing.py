@@ -30,9 +30,9 @@ oauth = OAuth()
 oauth.register(
     name='openstreetmap',
     api_base_url='https://api.openstreetmap.org/api/0.6/',
-    request_token_url='https://www.openstreetmap.org/oauth/request_token',
-    access_token_url='https://www.openstreetmap.org/oauth/access_token',
-    authorize_url='https://www.openstreetmap.org/oauth/authorize'
+    access_token_url='https://www.openstreetmap.org/oauth2/token',
+    authorize_url='https://www.openstreetmap.org/oauth2/authorize',
+    client_kwargs={'scope': 'read_prefs'},
 )
 
 cross = Blueprint('c', __name__)

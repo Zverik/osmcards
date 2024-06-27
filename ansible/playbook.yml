@@ -15,7 +15,7 @@
     - geerlingguy.ntp
     - geerlingguy.mysql
     - backup
-    - geerlingguy.certbot
+    - { role: geerlingguy.certbot, tags: certbot }
     - nginx
     - firewall
 
